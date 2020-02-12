@@ -1,0 +1,13 @@
+{
+  "issuer": "https://securetoken.google.com/project_id",
+  "jwks_uri": "test/resources/openid-jwks.json",
+  "response_types_supported": [
+    "id_token"
+  ],
+  "subject_types_supported": [
+    "public"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ]
+}

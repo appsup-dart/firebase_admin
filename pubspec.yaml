@@ -12,8 +12,12 @@ dependencies:
   jose: ^0.1.2
   dotenv: ^2.0.0
   openid_client: ^0.2.4
-  firebase_dart:
-    path: ../firebase_dart
+  firebase_dart: ^0.7.15+1
+  path: ^1.6.4
+  meta: ^1.1.6
+  http: ^0.12.0
+  crypto_keys: ^0.1.0
+  collection: ^1.14.11
 
 dev_dependencies:
   test: ^1.0.0

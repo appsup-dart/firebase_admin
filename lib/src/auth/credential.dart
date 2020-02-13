@@ -6,9 +6,9 @@ import '../utils/error.dart';
 import 'package:http/http.dart' as http;
 import 'package:jose/jose.dart';
 import 'package:crypto_keys/crypto_keys.dart';
-import 'package:meta/meta.dart';
 import '../credential.dart';
 import 'package:clock/clock.dart';
+import 'package:openid_client/openid_client.dart' as openid;
 
 /// Contains the properties necessary to use service-account JSON credentials.
 class Certificate {
@@ -86,53 +86,16 @@ class Certificate {
 }
 
 /// Implementation of Credential that uses a service account certificate.
-class ServiceAccountCredential implements FirebaseCredential {
+class ServiceAccountCredential extends _OpenIdCredential
+    implements FirebaseCredential {
   @override
   final Certificate certificate;
-  final http.Client httpClient = http.Client();
 
   ServiceAccountCredential(serviceAccountPathOrObject)
       : certificate = serviceAccountPathOrObject is String
             ? Certificate.fromPath(serviceAccountPathOrObject)
-            : Certificate.fromJson(
-                serviceAccountPathOrObject); // TODO two distinct constructors
-
-  @override
-  Future<AccessToken> getAccessToken() async {
-    final token = _createAuthJwt();
-    final postData = 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3A'
-        'grant-type%3Ajwt-bearer&assertion=$token';
-    final request = http.Request(
-        'POST', Uri.parse('https://accounts.google.com/o/oauth2/token'))
-      ..headers.addAll({
-        'Content-Type': 'application/x-www-form-urlencoded',
-      })
-      ..body = postData;
-
-    return _requestAccessToken(httpClient, request);
-  }
-
-  /// Obtain a OAuth2 token by making a remote service call.
-  Future<FirebaseAccessToken> _requestAccessToken(
-      http.Client client, http.Request request) async {
-    var resp = await http.Response.fromStream(await client.send(request));
-
-    var data = json.decode(resp.body);
-    if (resp.statusCode < 300) {
-      var token = FirebaseAccessToken.fromJson(data);
-      if (token.expirationTime == null || token.accessToken == null) {
-        throw FirebaseAppError.invalidCredential(
-          'Unexpected response while fetching access token: ${json.encode(data)}',
-        );
-      }
-      return token;
-    }
-    throw FirebaseAppError.invalidCredential(
-      'Invalid access token generated: "${json.encode(data)}". Valid access '
-      'tokens must be an object with the "expires_in" (number) and "access_token" '
-      '(string) properties.',
-    );
-  }
+            : Certificate.fromJson(serviceAccountPathOrObject),
+        super(null, null); // TODO two distinct constructors
 
   String _createAuthJwt() {
     final claims = {
@@ -155,6 +118,41 @@ class ServiceAccountCredential implements FirebaseCredential {
 
     return builder.build().toCompactSerialization();
   }
+
+  @override
+  Future<openid.Credential> createCredential(openid.Client client) async {
+    return await openid.Flow.jwtBearer(client)
+        .callback({'jwt': _createAuthJwt()});
+  }
+}
+
+abstract class _OpenIdCredential implements Credential {
+  final String clientId;
+  final String clientSecret;
+
+  _OpenIdCredential(this.clientId, this.clientSecret);
+
+  Future<openid.Credential> createCredential(openid.Client client);
+
+  @override
+  Future<AccessToken> getAccessToken() async {
+    var issuer = await openid.Issuer.discover(openid.Issuer.google);
+    var client = openid.Client(issuer, clientId, clientSecret);
+    return _OpenIdAccessToken(
+        await (await createCredential(client)).getTokenResponse());
+  }
+}
+
+class _OpenIdAccessToken implements AccessToken {
+  final openid.TokenResponse _token;
+
+  _OpenIdAccessToken(this._token);
+
+  @override
+  String get accessToken => _token.accessToken;
+
+  @override
+  DateTime get expirationTime => _token.expiresAt;
 }
 
 /// Internal interface for credentials that can both generate access tokens and
@@ -163,33 +161,17 @@ abstract class FirebaseCredential implements Credential {
   Certificate get certificate;
 }
 
-class FirebaseAccessToken implements AccessToken {
-  @override
-  final String accessToken;
-
-  @override
-  final DateTime expirationTime;
-
-  FirebaseAccessToken.fromJson(Map<String, dynamic> json)
-      : this(
-            accessToken: json['access_token'],
-            expiresIn: Duration(seconds: json['expires_in']));
-
-  FirebaseAccessToken(
-      {@required this.accessToken, @required Duration expiresIn})
-      : expirationTime = expiresIn == null ? null : clock.now().add(expiresIn);
-
-  Map<String, dynamic> toJson() => {
-        'accessToken': accessToken,
-        'expirationTime': expirationTime?.toIso8601String()
-      };
-}
-
 /// Implementation of Credential that gets access tokens from refresh tokens.
-class RefreshTokenCredential implements Credential {
-  RefreshTokenCredential(refreshTokenPathOrObject);
+class RefreshTokenCredential extends _OpenIdCredential {
+  final String refreshToken;
+  final http.Client httpClient = http.Client();
+
+  RefreshTokenCredential(Map<String, dynamic> json)
+      : refreshToken = json['refresh_token'],
+        super(json['client_id'], json['client_secret']);
+
   @override
-  Future<AccessToken> getAccessToken() {
-    throw UnimplementedError();
+  Future<openid.Credential> createCredential(openid.Client client) async {
+    return client.createCredential(refreshToken: refreshToken);
   }
 }

@@ -334,7 +334,7 @@ void main() {
           'throws a custom credential implementation which returns invalid access tokens',
           () {
         var credential = MockCredential(
-            () => FirebaseAccessToken(accessToken: null, expiresIn: null));
+            () => MockAccessToken(accessToken: null, expiresIn: null));
 
         var app = admin.initializeApp(AppOptions(credential: credential));
 
@@ -345,7 +345,7 @@ void main() {
       test(
           'returns a valid token given a well-formed custom credential implementation',
           () async {
-        var oracle = FirebaseAccessToken(
+        var oracle = MockAccessToken(
             accessToken: 'This is a custom token',
             expiresIn: Duration(hours: 1));
         var credential = MockCredential(() => oracle);
@@ -409,7 +409,7 @@ void main() {
           var mockApp =
               admin.initializeApp(AppOptions(credential: MockCredential(() {
             if (reject) throw Exception('Intentionally rejected');
-            return FirebaseAccessToken(
+            return MockAccessToken(
                 accessToken: 'key', expiresIn: Duration(hours: 1));
           })), mocks.appName);
           // Force a token refresh.
@@ -450,7 +450,7 @@ void main() {
               admin.initializeApp(AppOptions(credential: MockCredential(() {
             callCount++;
             if (reject) throw Exception('Intentionally rejected');
-            return FirebaseAccessToken(
+            return MockAccessToken(
                 accessToken: 'key', expiresIn: Duration(hours: 1));
           })), mocks.appName);
 
@@ -565,7 +565,7 @@ void main() {
           await admin.app(mocks.appName).delete();
           var mockApp =
               admin.initializeApp(AppOptions(credential: MockCredential(() {
-            return FirebaseAccessToken(
+            return MockAccessToken(
                 accessToken: 'key',
                 expiresIn: Duration(minutes: 3, seconds: 10));
           })), mocks.appName);

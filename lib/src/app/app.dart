@@ -11,7 +11,7 @@ class FirebaseAppInternals {
   final Credential credential;
   bool _isDeleted = false;
 
-  FirebaseAccessToken _cachedToken;
+  AccessToken _cachedToken;
   Future<AccessToken> _cachedTokenFuture;
   Timer _tokenRefreshTimeout;
   final List<void Function(String token)> _tokenListeners = [];

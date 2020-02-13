@@ -25,7 +25,7 @@ var credential = ServiceAccountMockCredential(
 class ServiceAccountMockCredential extends ServiceAccountCredential
     with MockCredentialMixin {
   @override
-  final FirebaseAccessToken Function() tokenFactory;
+  final AccessToken Function() tokenFactory;
   ServiceAccountMockCredential(serviceAccountPathOrObject,
       [this.tokenFactory = MockCredentialMixin.defaultFactory])
       : super(serviceAccountPathOrObject);
@@ -33,15 +33,15 @@ class ServiceAccountMockCredential extends ServiceAccountCredential
 
 class MockCredential extends Credential with MockCredentialMixin {
   @override
-  final FirebaseAccessToken Function() tokenFactory;
+  final AccessToken Function() tokenFactory;
 
   MockCredential([this.tokenFactory = MockCredentialMixin.defaultFactory]);
 }
 
 mixin MockCredentialMixin on Credential {
-  FirebaseAccessToken Function() get tokenFactory;
+  AccessToken Function() get tokenFactory;
 
-  static FirebaseAccessToken defaultFactory() => FirebaseAccessToken.fromJson({
+  static AccessToken defaultFactory() => MockAccessToken.fromJson({
         'access_token': 'mock-access-token',
         'expires_in': 3600,
       });
@@ -131,4 +131,20 @@ class MockTokenVerifier extends FirebaseTokenVerifier {
         File('test/resources/openid-configuration.json').readAsStringSync())));
     return Client(issuer, projectId);
   }
+}
+
+class MockAccessToken implements AccessToken {
+  @override
+  final String accessToken;
+
+  @override
+  final DateTime expirationTime;
+
+  MockAccessToken({this.accessToken, Duration expiresIn})
+      : expirationTime = expiresIn == null ? null : clock.now().add(expiresIn);
+
+  MockAccessToken.fromJson(Map<String, dynamic> json)
+      : this(
+            accessToken: json['access_token'],
+            expiresIn: Duration(seconds: json['expires_in']));
 }

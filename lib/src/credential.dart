@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
+import 'package:openid_client/openid_client_io.dart';
 
 import 'auth/credential.dart';
 import 'utils/error.dart';
@@ -9,6 +10,51 @@ import 'package:path/path.dart' as path;
 
 class Credentials {
   static Credential _globalAppDefaultCred;
+
+  static Future<void> logout() async {
+    var f = File(_firebaseAdminCredentialPath);
+    await f.delete();
+  }
+
+  static Future<Credential> login(
+      {String clientId, String clientSecret}) async {
+    var issuer = await Issuer.discover(Issuer.google);
+
+    var client = Client(
+      issuer,
+      clientId ??
+          '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com',
+      clientSecret ?? 'j9iVZfS8kkCEFUPaAeJV0sAi',
+    );
+
+    // create an authenticator
+    var authenticator = Authenticator(client,
+        scopes: [
+          'email',
+          'https://www.googleapis.com/auth/cloud-platform',
+          'https://www.googleapis.com/auth/cloudplatformprojects.readonly',
+          'https://www.googleapis.com/auth/firebase',
+          'openid'
+        ],
+        port: 4000);
+
+    // starts the authentication
+    var c = await authenticator.authorize(); // this will open a browser
+
+    var v = {
+      'client_id': client.clientId,
+      'client_secret': client.clientSecret,
+      'refresh_token': c.response['refresh_token']
+    };
+
+    var f = File(_firebaseAdminCredentialPath);
+    f.parent.createSync(recursive: true);
+    f.writeAsStringSync(JsonEncoder.withIndent(' ').convert(v));
+
+    var credential = RefreshTokenCredential(v);
+
+    return credential;
+  }
 
   /// Returns a [Credential] created from the Google Application Default
   /// Credentials (ADC) that grants admin access to Firebase services.
@@ -41,6 +87,19 @@ class Credentials {
     return path.join(config, 'gcloud/application_default_credentials.json');
   }
 
+  static String get _firebaseConfigPath {
+    var config = _configDir;
+    if (config == null) return null;
+    return path.join(config, 'configstore/firebase-tools.json');
+  }
+
+  static String get _firebaseAdminCredentialPath {
+    var config = _configDir;
+    if (config == null) return null;
+    return path.join(
+        config, 'firebase_admin/application_default_credentials.json');
+  }
+
   static String get _configDir {
     // Windows has a dedicated low-rights location for apps at ~/Application Data
     if (Platform.isWindows) {
@@ -59,15 +118,41 @@ class Credentials {
       return _credentialFromFile(env['GOOGLE_APPLICATION_CREDENTIALS']);
     }
 
-    // It is OK to not have this file. If it is present, it must be valid.
-    if (_gcloudCredentialPath != null) {
-      final refreshToken = _readCredentialFile(_gcloudCredentialPath, true);
+    if (_firebaseAdminCredentialPath != null) {
+      final refreshToken =
+          _readCredentialFile(_firebaseAdminCredentialPath, true);
       if (refreshToken != null) {
         return RefreshTokenCredential(refreshToken);
       }
     }
 
-    throw UnsupportedError('Credential on compute engine not supported');
+    // It is OK to not have this file. If it is present, it must be valid.
+    if (_gcloudCredentialPath != null) {
+      final refreshToken = _readCredentialFile(_gcloudCredentialPath, true);
+      if (refreshToken != null) {
+        // End user credentials from the Google Cloud SDK or Google Cloud Shell
+        // are not supported
+        if (refreshToken['client_id'] !=
+            '764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com') {
+          return RefreshTokenCredential(refreshToken);
+        }
+      }
+    }
+
+    // When firebase cli installed, use it's token
+    if (_firebaseConfigPath != null) {
+      var f = File(_firebaseConfigPath);
+      if (f.existsSync()) {
+        var v = json.decode(f.readAsStringSync());
+        return RefreshTokenCredential(v['tokens']
+          ..['client_id'] =
+              '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com'
+          ..['client_secret'] = 'j9iVZfS8kkCEFUPaAeJV0sAi');
+      }
+    }
+
+    // TODO Credential on compute engine
+    return null;
   }
 
   static Credential _credentialFromFile(String filePath) {

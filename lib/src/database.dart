@@ -23,7 +23,7 @@ class Database implements FirebaseService {
   /// Returns a [Reference] representing the location in the Database
   /// corresponding to the provided [path]. If no path is provided, the
   /// Reference will point to the root of the Database.
-  Firebase ref([String path]) => _rootRef.child(path);
+  Firebase ref([String path]) => _rootRef.child(path ?? '');
 
   @override
   Future<void> delete() async {

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:firebase_admin/src/storage.dart';
+
 import '../firebase_admin.dart';
 import 'app/app.dart';
 import 'database.dart';
@@ -49,6 +51,9 @@ class App {
 
   /// Gets Realtime [Database] client for this application.
   Database database() => _getService(() => Database(this));
+
+  /// Gets [Storage] service for this application.
+  Storage storage() => _getService(() => Storage(this));
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.

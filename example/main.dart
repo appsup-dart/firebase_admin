@@ -13,10 +13,12 @@ void main() async {
   // the credentials are stored on disk for later use
   credential ??= await Credentials.login();
 
+  var projectId = 'some-project';
   // create an app
   var app = FirebaseAdmin.instance.initializeApp(AppOptions(
       credential: credential ?? Credentials.applicationDefault(),
-      projectId: 'some-project'));
+      projectId: projectId,
+      storageBucket: '$projectId.appspot.com'));
 
   try {
     // get a user by email
@@ -24,5 +26,9 @@ void main() async {
     print(v.toJson());
   } on FirebaseException catch (e) {
     print(e.message);
+  }
+
+  await for (var v in app.storage().bucket().list()) {
+    print(v.name);
   }
 }

@@ -644,3 +644,11 @@ class FirebaseAuthError extends _PrefixedFirebaseError {
 
   FirebaseAuthError(String code, String message) : super('auth', code, message);
 }
+
+class FirebaseStorageError extends _PrefixedFirebaseError {
+  FirebaseStorageError(String code, String message)
+      : super('storage', code, message);
+
+  FirebaseStorageError.invalidArgument([String message])
+      : this('invalid-argument', message);
+}

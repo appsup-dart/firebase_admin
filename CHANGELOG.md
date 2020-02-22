@@ -1,4 +1,8 @@
 
+## 0.1.2
+
+- admin sdk for firebase storage
+
 ## 0.1.1
 
 - look for default credentials in Firebase CLI configurations

@@ -9,7 +9,7 @@ environment:
 dependencies:
   clock: ^1.0.0
   x509: ^0.1.0
-  jose: ^0.1.2
+  jose: '>=0.1.2 <0.3.0'
   dotenv: ^2.0.0
   openid_client: ^0.2.5
   firebase_dart: ^0.7.15+3
@@ -18,7 +18,7 @@ dependencies:
   http: ^0.12.0
   crypto_keys: ^0.1.0
   collection: ^1.14.11
-  gcloud: ^0.6.3
+  gcloud: '>=0.6.3 <0.8.0'
 
 dev_dependencies:
   test: ^1.0.0

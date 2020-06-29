@@ -2,6 +2,7 @@ import 'package:firebase_admin/src/service.dart';
 
 import '../firebase_admin.dart';
 import 'app/app_extension.dart';
+import 'app.dart';
 
 import 'package:firebase_dart/firebase_dart.dart';
 

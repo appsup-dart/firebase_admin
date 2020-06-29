@@ -21,13 +21,13 @@ class App {
   final Map<Type, FirebaseService> _services = {};
 
   @visibleForTesting
-  final FirebaseAppInternals internals;
+  final FirebaseAppInternals _internals;
 
   /// Do not call this constructor directly. Instead, use
   /// [FirebaseAdmin.initializeApp] to create an app.
   App(String name, AppOptions options)
       : _name = name,
-        internals = FirebaseAppInternals(options.credential),
+        _internals = FirebaseAppInternals(options.credential),
         _options = options;
 
   /// The name of this application.
@@ -80,6 +80,10 @@ class App {
       );
     }
   }
+}
+
+extension AppInternalsExtension on App {
+  FirebaseAppInternals get internals => _internals;
 }
 
 /// Available options to pass to initializeApp().

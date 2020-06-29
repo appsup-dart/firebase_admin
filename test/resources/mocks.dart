@@ -10,6 +10,7 @@ import 'package:jose/jose.dart';
 import 'package:openid_client/openid_client.dart' hide Credential;
 import 'package:path/path.dart' as path;
 import 'package:firebase_admin/firebase_admin.dart';
+import 'package:firebase_admin/src/app.dart';
 
 var projectId = 'project_id';
 

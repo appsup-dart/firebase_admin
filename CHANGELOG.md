@@ -1,4 +1,8 @@
 
+## 0.1.2+1
+
+- support latest dependencies
+
 ## 0.1.2
 
 - admin sdk for firebase storage

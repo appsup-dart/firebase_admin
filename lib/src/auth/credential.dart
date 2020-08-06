@@ -121,8 +121,8 @@ class ServiceAccountCredential extends _OpenIdCredential
 
   @override
   Future<openid.Credential> createCredential(openid.Client client) async {
-    return await openid.Flow.jwtBearer(client)
-        .callback({'jwt': _createAuthJwt()});
+    var flow = openid.Flow.jwtBearer(client);
+    return await flow.callback({'jwt': _createAuthJwt(), 'state': flow.state});
   }
 }
 

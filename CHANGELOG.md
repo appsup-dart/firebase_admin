@@ -1,4 +1,9 @@
 
+## 0.1.3
+
+- fix `certFromPath` (see issue #3)
+- `Credentials.applicationDefault` now also looks for a `service-account.json` file in the package main directory
+
 ## 0.1.2+1
 
 - support latest dependencies

@@ -3,6 +3,7 @@ import 'package:firebase_admin/src/credential.dart';
 
 void main() async {
   // applicationDefault() will look for credentials in the following locations:
+  // * the service-account.json file in the package main directory
   // * the env variable GOOGLE_APPLICATION_CREDENTIALS
   // * a configuration file, specific for this library, stored in the user's home directory
   // * gcloud's application default credentials

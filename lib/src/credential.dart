@@ -12,7 +12,7 @@ class Credentials {
   static Credential _globalAppDefaultCred;
 
   static Future<void> logout() async {
-    var f = File(_firebaseAdminCredentialPath);
+    var f = File(firebaseAdminCredentialPath);
     await f.delete();
   }
 
@@ -47,7 +47,7 @@ class Credentials {
       'refresh_token': c.response['refresh_token']
     };
 
-    var f = File(_firebaseAdminCredentialPath);
+    var f = File(firebaseAdminCredentialPath);
     f.parent.createSync(recursive: true);
     f.writeAsStringSync(JsonEncoder.withIndent(' ').convert(v));
 
@@ -60,6 +60,15 @@ class Credentials {
   /// Credentials (ADC) that grants admin access to Firebase services.
   ///
   /// This credential can be used in the call to [initializeApp].
+  ///
+  /// This will look for credentials in the following locations:
+  ///
+  ///   * the service-account.json file in the package main directory
+  ///   * the service account file path specified in the env variable GOOGLE_APPLICATION_CREDENTIALS
+  ///   * the configuration file stored at [firebaseAdminCredentialPath] containing
+  ///   credentials obtained with [Credentials.login]
+  ///   * gcloud's application default credentials
+  ///   * credentials from the firebase tools
   static Credential applicationDefault() =>
       _globalAppDefaultCred ??= _getApplicationDefault();
 
@@ -93,7 +102,13 @@ class Credentials {
     return path.join(config, 'configstore/firebase-tools.json');
   }
 
-  static String get _firebaseAdminCredentialPath {
+  /// The path where credentials obtained by doing [Credentials.login] are
+  /// stored
+  ///
+  /// On windows, this is `$APP_DATA/firebase_admin/application_default_credentials.json`,
+  /// on other platforms, this is `$HOME/.config/firebase_admin/application_default_credentials.json`.
+  ///
+  static String get firebaseAdminCredentialPath {
     var config = _configDir;
     if (config == null) return null;
     return path.join(
@@ -114,13 +129,17 @@ class Credentials {
   }
 
   static Credential _getApplicationDefault() {
+    var f = File('service-account.json');
+    if (f.existsSync()) {
+      return _credentialFromFile(f.path);
+    }
     if (env['GOOGLE_APPLICATION_CREDENTIALS'] != null) {
       return _credentialFromFile(env['GOOGLE_APPLICATION_CREDENTIALS']);
     }
 
-    if (_firebaseAdminCredentialPath != null) {
+    if (firebaseAdminCredentialPath != null) {
       final refreshToken =
-          _readCredentialFile(_firebaseAdminCredentialPath, true);
+          _readCredentialFile(firebaseAdminCredentialPath, true);
       if (refreshToken != null) {
         return RefreshTokenCredential(refreshToken);
       }

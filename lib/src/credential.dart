@@ -24,7 +24,7 @@ class Credentials {
       issuer,
       clientId ??
           '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com',
-      clientSecret ?? 'j9iVZfS8kkCEFUPaAeJV0sAi',
+      clientSecret: clientSecret ?? 'j9iVZfS8kkCEFUPaAeJV0sAi',
     );
 
     // create an authenticator

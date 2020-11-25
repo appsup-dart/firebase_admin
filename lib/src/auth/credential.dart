@@ -137,7 +137,7 @@ abstract class _OpenIdCredential implements Credential {
   @override
   Future<AccessToken> getAccessToken() async {
     var issuer = await openid.Issuer.discover(openid.Issuer.google);
-    var client = openid.Client(issuer, clientId, clientSecret);
+    var client = openid.Client(issuer, clientId, clientSecret: clientSecret);
     return _OpenIdAccessToken(
         await (await createCredential(client)).getTokenResponse());
   }

@@ -1,4 +1,8 @@
 
+## 0.1.4
+
+- upgrade openid_client dependency to 0.3.1
+
 ## 0.1.3
 
 - fix `certFromPath` (see issue #3)

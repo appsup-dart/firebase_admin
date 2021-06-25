@@ -34,7 +34,7 @@ class ApiClient {
 
   Future<Map<String, dynamic>> post(
       String endpoint, Map<String, dynamic> body) async {
-    var response = await httpClient.post('$baseUrl$endpoint',
+    var response = await httpClient.post(Uri.parse('$baseUrl$endpoint'),
         body: json.encode(body), headers: _firebaseAuthHeader);
     return _handleResponse(response);
   }
@@ -453,15 +453,12 @@ class CreateEditAccountRequest {
 
   Map<String, dynamic> toRequest() => {
         'disabled': disabled,
-        if (displayName != '')
-          'displayName': displayName,
+        if (displayName != '') 'displayName': displayName,
         'email': email,
         'emailVerified': emailVerified,
         'password': password,
-        if (phoneNumber != '')
-          'phoneNumber': phoneNumber,
-        if (photoUrl != '')
-          'photoUrl': photoUrl,
+        if (phoneNumber != '') 'phoneNumber': phoneNumber,
+        if (photoUrl != '') 'photoUrl': photoUrl,
         'localId': uid,
         // For deleting displayName or photoURL, these values must be passed as null.
         // They will be removed from the backend request and an additional parameter
@@ -476,8 +473,7 @@ class CreateEditAccountRequest {
         // deleteProvider: ['phone'] with an array of providerIds (phone in this case),
         // will be passed.
         // Currently this applies to phone provider only.
-        if (phoneNumber == '')
-          'deleteProvider': ['phone'],
+        if (phoneNumber == '') 'deleteProvider': ['phone'],
         if (validSince != null)
           'validSince': validSince.millisecondsSinceEpoch ~/ 1000
       };

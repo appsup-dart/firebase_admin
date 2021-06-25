@@ -1,6 +1,6 @@
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:test/test.dart';
-import '../resources/mocks.dart' as mocks;
+import 'resources/mocks.dart' as mocks;
 
 Matcher throwsFirebaseError([String code]) => throwsA(
     TypeMatcher<FirebaseException>().having((e) => e.code, 'code', code));

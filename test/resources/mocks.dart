@@ -128,8 +128,17 @@ class MockTokenVerifier extends FirebaseTokenVerifier {
 
   @override
   Future<Client> getOpenIdClient() async {
-    var issuer = Issuer(OpenIdProviderMetadata.fromJson(json.decode(
-        File('test/resources/openid-configuration.json').readAsStringSync())));
+    var config = json.decode(
+        File('test/resources/openid-configuration.json').readAsStringSync());
+
+    var uri = Uri.parse(config['jwks_uri']);
+    if (uri.scheme.isEmpty) {
+      var content = File(uri.toFilePath()).readAsStringSync();
+      config['jwks_uri'] =
+          Uri.dataFromString(content, mimeType: 'application/json').toString();
+    }
+
+    var issuer = Issuer(OpenIdProviderMetadata.fromJson(config));
     return Client(issuer, projectId);
   }
 }

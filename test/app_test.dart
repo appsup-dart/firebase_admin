@@ -8,11 +8,11 @@ import 'package:test/test.dart';
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/service.dart';
 import 'dart:async';
-import '../resources/mocks.dart' as mocks;
+import 'resources/mocks.dart' as mocks;
 import 'package:fake_async/fake_async.dart';
 import 'package:dotenv/dotenv.dart';
 
-import '../resources/mocks.dart';
+import 'resources/mocks.dart';
 import 'package:firebase_admin/src/app.dart';
 
 Matcher throwsAppError([String message]) =>

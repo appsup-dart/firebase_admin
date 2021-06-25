@@ -8,10 +8,10 @@ import 'package:firebase_admin/src/auth/user_record.dart';
 import 'package:jose/jose.dart';
 import 'package:openid_client/openid_client.dart';
 import 'package:test/test.dart';
-import '../resources/mocks.dart' as mocks;
+import 'resources/mocks.dart' as mocks;
 import 'package:mockito/mockito.dart';
 
-import '../resources/mocks.dart';
+import 'resources/mocks.dart';
 
 Matcher throwsFirebaseError([String code]) => throwsA(
     TypeMatcher<FirebaseException>().having((e) => e.code, 'code', code));

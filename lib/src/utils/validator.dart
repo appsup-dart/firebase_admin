@@ -1,8 +1,8 @@
 /// Validates that a string is a valid email.
 
-// @dart=2.9
 
-bool isEmail(String email) {
+
+bool isEmail(String? email) {
   if (email == null) return false;
   // There must at least one character before the @ symbol and another after.
   final re = RegExp(r'^[^@]+@[^@]+$');
@@ -10,12 +10,12 @@ bool isEmail(String email) {
 }
 
 /// Validates that a string is a valid Firebase Auth uid.
-bool isUid(String uid) {
+bool isUid(String? uid) {
   return uid != null && uid.isNotEmpty && uid.length <= 128;
 }
 
 /// Validates that a string is a valid phone number.
-bool isPhoneNumber(String phoneNumber) {
+bool isPhoneNumber(String? phoneNumber) {
   if (phoneNumber == null) return false;
   // Phone number validation is very lax here. Backend will enforce E.164
   // spec compliance and will normalize accordingly.
@@ -27,13 +27,13 @@ bool isPhoneNumber(String phoneNumber) {
 }
 
 /// Validates that a string is a valid Firebase Auth password.
-bool isPassword(String password) {
+bool isPassword(String? password) {
 // A password must be a string of at least 6 characters.
   return password != null && password.length >= 6;
 }
 
 /// Validates that a string is a valid web URL.
-bool isUrl(String urlStr) {
+bool isUrl(String? urlStr) {
   if (urlStr == null) return false;
   try {
     Uri.parse(urlStr);

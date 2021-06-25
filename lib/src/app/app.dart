@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:firebase_admin/src/utils/error.dart';
@@ -11,9 +9,9 @@ class FirebaseAppInternals {
   final Credential credential;
   bool _isDeleted = false;
 
-  AccessToken _cachedToken;
-  Future<AccessToken> _cachedTokenFuture;
-  Timer _tokenRefreshTimeout;
+  AccessToken? _cachedToken;
+  Future<AccessToken>? _cachedTokenFuture;
+  Timer? _tokenRefreshTimeout;
   final List<void Function(String token)> _tokenListeners = [];
 
   FirebaseAppInternals(this.credential);
@@ -22,16 +20,15 @@ class FirebaseAppInternals {
   /// Gets an auth token for the associated app.
   Future<AccessToken> getToken([bool forceRefresh = false]) {
     var expired = _cachedToken == null ||
-        _cachedToken.expirationTime.isBefore(clock.now());
+        _cachedToken!.expirationTime.isBefore(clock.now());
 
     if (_cachedTokenFuture != null && !forceRefresh && !expired) {
-      return _cachedTokenFuture.catchError((error) {
+      return _cachedTokenFuture!.catchError((error) {
         // Update the cached token future to avoid caching errors. Set it to resolve with the
         // cached token if we have one (and return that future since the token has still not
         // expired).
         if (_cachedToken != null) {
-          _cachedTokenFuture = Future.value(_cachedToken);
-          return _cachedTokenFuture;
+          return _cachedTokenFuture = Future.value(_cachedToken);
         }
 
         // Otherwise, set the cached token future to null so that it will force a refresh next
@@ -47,14 +44,9 @@ class FirebaseAppInternals {
 
       // this.credential_ may be an external class; resolving it in a future helps us
       // protect against exceptions and upgrades the result to a future in all cases.
-      _cachedTokenFuture = Future.microtask(() async {
+      return _cachedTokenFuture = Future.microtask(() async {
         var token = await credential.getAccessToken();
-        // Since the developer can provide the credential implementation, we want to weakly verify
-        // the return type until the type is properly exported.
-        if (token.accessToken == null || token.expirationTime == null) {
-          throw FirebaseAppError.invalidCredential(
-              'Invalid access token generated');
-        }
+
         var hasAccessTokenChanged =
             _cachedToken?.accessToken != token.accessToken;
         var hasExpirationChanged =
@@ -68,7 +60,7 @@ class FirebaseAppInternals {
           });
         }
 
-        var expiresIn = token.expirationTime?.difference(clock.now());
+        var expiresIn = token.expirationTime.difference(clock.now());
         // Establish a timeout to proactively refresh the token every minute starting at five
         // minutes before it expires. Once a token refresh succeeds, no further retries are
         // needed; if it fails, retry every minute until the token expires (resulting in a total
@@ -110,8 +102,6 @@ class FirebaseAppInternals {
 
         throw FirebaseAppError.invalidCredential(errorMessage);
       }, test: (e) => e is! FirebaseException);
-
-      return _cachedTokenFuture;
     }
   }
 
@@ -119,7 +109,7 @@ class FirebaseAppInternals {
   void addAuthTokenListener(void Function(String token) listener) {
     _tokenListeners.add(listener);
     if (_cachedToken != null) {
-      listener(_cachedToken.accessToken);
+      listener(_cachedToken!.accessToken);
     }
   }
 

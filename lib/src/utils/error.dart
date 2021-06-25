@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'dart:convert';
 
 /// Base class for all Firebase exceptions.

@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'app.dart';
 
 /// Services are exposed through instances, each of which is associated with a

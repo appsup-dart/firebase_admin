@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'package:openid_client/openid_client.dart';
 
 import '../../firebase_admin.dart';

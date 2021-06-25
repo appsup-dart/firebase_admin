@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import '../auth.dart';
 import '../utils/error.dart';
 

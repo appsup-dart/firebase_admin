@@ -79,7 +79,7 @@ class FirebaseAdmin {
   /// Returns the FirebaseApp instance with the provided name (or the default
   /// FirebaseApp instance if no name is provided).
   App? app([String appName = defaultAppName]) {
-    if (appName == null || appName.isEmpty) {
+    if (appName.isEmpty) {
       throw FirebaseAppError.invalidAppName(
         'Invalid Firebase app name "$appName" provided. App name must be a non-empty string.',
       );

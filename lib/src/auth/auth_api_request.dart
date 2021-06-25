@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
@@ -29,7 +27,7 @@ class ApiClient {
   /// Firebase Auth request timeout duration in milliseconds.
   static const _firebaseAuthTimeout = Duration(milliseconds: 25000);
 
-  ApiClient(App app, String version, String projectId)
+  ApiClient(App app, String version, String? projectId)
       : httpClient = AuthorizedHttpClient(app, _firebaseAuthTimeout),
         baseUrl =
             'https://identitytoolkit.googleapis.com/$version/projects/$projectId';
@@ -124,7 +122,7 @@ class AuthRequestHandler {
   /// Exports the users (single batch only) with a size of maxResults and
   /// starting from the offset as specified by pageToken.
   Future<Map<String, dynamic>> downloadAccount(
-      int maxResults, String pageToken) async {
+      int? maxResults, String? pageToken) async {
     // Validate next page token.
     if (pageToken != null && pageToken.isEmpty) {
       throw FirebaseAuthError.invalidPageToken();
@@ -161,7 +159,7 @@ class AuthRequestHandler {
 
   /// Deletes an account identified by a uid.
   Future<Map<String, dynamic>> deleteAccount(String uid) {
-    if (uid == null || !validator.isUid(uid)) {
+    if (!validator.isUid(uid)) {
       throw FirebaseAuthError.invalidUid();
     }
 
@@ -175,7 +173,7 @@ class AuthRequestHandler {
   /// Edits an existing user.
   Future<String> updateExistingAccount(
       String uid, CreateEditAccountRequest request) async {
-    if (uid == null || !validator.isUid(uid)) {
+    if (!validator.isUid(uid)) {
       throw FirebaseAuthError.invalidUid();
     }
 
@@ -185,7 +183,7 @@ class AuthRequestHandler {
   /// Sets additional developer claims on an existing user identified by
   /// provided UID.
   Future<String> setCustomUserClaims(
-      String uid, Map<String, dynamic> customUserClaims) async {
+      String uid, Map<String, dynamic>? customUserClaims) async {
     // Validate user UID.
     if (!validator.isUid(uid)) {
       throw FirebaseAuthError.invalidUid();
@@ -245,7 +243,7 @@ class AuthRequestHandler {
   /// handled by a mobile app and the additional state information to be passed
   /// in the deep link, etc. Required when requestType == 'EMAIL_SIGNIN'
   Future<String> getEmailActionLink(String requestType, String email,
-      {ActionCodeSettings actionCodeSettings}) async {
+      {ActionCodeSettings? actionCodeSettings}) async {
     if (!validator.isEmail(email)) {
       throw FirebaseAuthError.invalidEmail();
     }
@@ -274,7 +272,7 @@ class AuthRequestHandler {
     if (actionCodeSettings != null || requestType == 'EMAIL_SIGNIN') {
       request = {
         ...request,
-        ...actionCodeSettings.buildRequest(),
+        ...actionCodeSettings!.buildRequest(),
       };
     }
     var response = await apiClient.post('/accounts:sendOobCode', request);
@@ -293,16 +291,16 @@ class AuthRequestHandler {
 class UploadAccountRequest extends CreateEditAccountRequest {}
 
 class CreateEditAccountRequest {
-  final bool disabled;
-  final String displayName;
-  final String email;
-  final bool emailVerified;
-  final String password;
-  final String phoneNumber;
-  final String photoUrl;
-  final String uid;
-  final String customAttributes;
-  final DateTime validSince;
+  final bool? disabled;
+  final String? displayName;
+  final String? email;
+  final bool? emailVerified;
+  final String? password;
+  final String? phoneNumber;
+  final String? photoUrl;
+  final String? uid;
+  final String? customAttributes;
+  final DateTime? validSince;
 
   static const _reservedClaims = [
     'acr',
@@ -362,7 +360,7 @@ class CreateEditAccountRequest {
       this.photoUrl,
       this.uid,
       this.validSince,
-      Map<String, dynamic> customAttributes})
+      Map<String, dynamic>? customAttributes})
       : customAttributes = customAttributes == null
             ? null
             : _stringifyClaims(customAttributes) {
@@ -477,7 +475,7 @@ class CreateEditAccountRequest {
         // Currently this applies to phone provider only.
         if (phoneNumber == '') 'deleteProvider': ['phone'],
         if (validSince != null)
-          'validSince': validSince.millisecondsSinceEpoch ~/ 1000
+          'validSince': validSince!.millisecondsSinceEpoch ~/ 1000
       };
 
   @override

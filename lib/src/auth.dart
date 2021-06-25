@@ -109,7 +109,7 @@ class Auth implements FirebaseService {
   /// remove them from the user record. When phone number is removed, also the
   /// corresponding provider will be removed.
   Future<UserRecord> updateUser(
-    String? uid, {
+    String uid, {
     bool? disabled,
     String? displayName,
     String? email,
@@ -216,7 +216,7 @@ class Auth implements FirebaseService {
   /// Returns a [Future] containing a custom token string for the provided [uid]
   /// and payload.
   Future<String> createCustomToken(String uid,
-      [Map<String, dynamic>? developerClaims]) async {
+      [Map<String, dynamic> developerClaims = const {}]) async {
     return _tokenGenerator.createCustomToken(uid, developerClaims);
   }
 
@@ -280,8 +280,7 @@ class ActionCodeSettings {
       this.androidPackageName,
       this.androidInstallApp,
       this.androidMinimumVersion,
-      this.dynamicLinkDomain})
-      : assert(url != null);
+      this.dynamicLinkDomain});
 }
 
 /// Response object for a listUsers operation.

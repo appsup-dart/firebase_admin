@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
@@ -14,19 +12,12 @@ import 'package:openid_client/openid_client.dart' as openid;
 
 /// Contains the properties necessary to use service-account JSON credentials.
 class Certificate {
-  final String projectId;
+  final String? projectId;
   final JsonWebKey privateKey;
   final String clientEmail;
 
-  Certificate({this.projectId, this.privateKey, this.clientEmail}) {
-    if (privateKey == null) {
-      throw FirebaseAppError.invalidCredential(
-          'Certificate object must contain a string "private_key" property.');
-    } else if (clientEmail == null) {
-      throw FirebaseAppError.invalidCredential(
-          'Certificate object must contain a string "client_email" property.');
-    }
-  }
+  Certificate(
+      {this.projectId, required this.privateKey, required this.clientEmail});
 
   factory Certificate.fromPath(String filePath) {
     try {
@@ -43,19 +34,13 @@ class Certificate {
   }
 
   factory Certificate.fromJson(Map<String, dynamic> json) {
-    if (json == null) {
-      throw FirebaseAppError.invalidCredential(
-        'Certificate object must be an object.',
-      );
-    }
-
     var privateKey = json['private_key'];
     if (privateKey is! String) privateKey = null;
     var clientEmail = json['client_email'];
     if (clientEmail is! String) clientEmail = null;
 
     var v = parsePem(privateKey).first;
-    var keyPair = (v is PrivateKeyInfo) ? v.keyPair : v as KeyPair;
+    var keyPair = (v is PrivateKeyInfo) ? v.keyPair : (v as KeyPair?)!;
     var pKey = keyPair.privateKey as RsaPrivateKey;
 
     String _bytesToBase64(List<int> bytes) {
@@ -129,8 +114,8 @@ class ServiceAccountCredential extends _OpenIdCredential
 }
 
 abstract class _OpenIdCredential implements Credential {
-  final String clientId;
-  final String clientSecret;
+  final String? clientId;
+  final String? clientSecret;
 
   _OpenIdCredential(this.clientId, this.clientSecret);
 
@@ -151,10 +136,10 @@ class _OpenIdAccessToken implements AccessToken {
   _OpenIdAccessToken(this._token);
 
   @override
-  String get accessToken => _token.accessToken;
+  String get accessToken => _token.accessToken!;
 
   @override
-  DateTime get expirationTime => _token.expiresAt;
+  DateTime get expirationTime => _token.expiresAt!;
 }
 
 /// Internal interface for credentials that can both generate access tokens and

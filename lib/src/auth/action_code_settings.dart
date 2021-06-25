@@ -1,16 +1,10 @@
-// @dart=2.9
-
 import '../auth.dart';
 import '../utils/error.dart';
 
 extension ActionCodeSettingsRequestBuilder on ActionCodeSettings {
   /// Returns the corresponding constructed server request
   Map<String, dynamic> buildRequest() {
-    if (url == null) {
-      throw FirebaseAuthError.missingContinueUri();
-    }
-
-    if (dynamicLinkDomain != null && dynamicLinkDomain.isEmpty) {
+    if (dynamicLinkDomain != null && dynamicLinkDomain!.isEmpty) {
       throw FirebaseAuthError.invalidDynamicLinkDomain();
     }
 

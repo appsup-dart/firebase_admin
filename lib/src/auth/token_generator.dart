@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:clock/clock.dart';
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/auth/credential.dart';
@@ -48,8 +46,6 @@ class FirebaseTokenGenerator {
       throw FirebaseAuthError.invalidArgument(
           'First argument to createCustomToken() must be a non-empty string uid.');
     }
-
-    developerClaims ??= {};
 
     for (var key in developerClaims.keys) {
       if (blacklistedClaims.contains(key)) {

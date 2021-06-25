@@ -1,5 +1,3 @@
-
-
 import 'package:firebase_admin/src/service.dart';
 
 import '../firebase_admin.dart';
@@ -19,7 +17,7 @@ class Database implements FirebaseService {
   Database(this.app)
       : _database = StandaloneFirebaseDatabase(app.options.databaseUrl ??
             'https://${app.projectId}.firebaseio.com/') {
-    _database.authenticate(app.internals.getToken()!.then((v) => v.accessToken));
+    _database.authenticate(app.internals.getToken().then((v) => v.accessToken));
 
     app.internals
         .addAuthTokenListener((token) => _database.authenticate(token));

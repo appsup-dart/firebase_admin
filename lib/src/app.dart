@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:firebase_admin/src/storage.dart';
-import 'package:meta/meta.dart';
 
 import '../firebase_admin.dart';
 import 'app/app.dart';

@@ -1,9 +1,4 @@
-// @dart=2.9
-
 import 'dart:convert';
-
-import 'package:firebase_admin/src/utils/error.dart';
-import 'package:meta/meta.dart';
 
 /// 'REDACTED', encoded as a base64 string.
 final _b64Redacted = base64.encode('REDACTED'.codeUnits);
@@ -11,8 +6,8 @@ final _b64Redacted = base64.encode('REDACTED'.codeUnits);
 /// User metadata class that provides metadata information like user account
 /// creation and last sign in time.
 class UserMetadata {
-  final DateTime creationTime;
-  final DateTime lastSignInTime;
+  final DateTime? creationTime;
+  final DateTime? lastSignInTime;
   UserMetadata({this.creationTime, this.lastSignInTime});
   UserMetadata.fromJson(Map<String, dynamic> map)
       : this(
@@ -37,25 +32,19 @@ class UserMetadata {
 /// Firebase providers like google.com, facebook.com, password, etc.
 class UserInfo {
   final String uid;
-  final String displayName;
-  final String email;
-  final String photoUrl;
+  final String? displayName;
+  final String? email;
+  final String? photoUrl;
   final String providerId;
-  final String phoneNumber;
+  final String? phoneNumber;
 
   UserInfo(
-      {@required this.uid,
+      {required this.uid,
       this.displayName,
       this.email,
       this.photoUrl,
-      @required this.providerId,
-      this.phoneNumber}) {
-    // Provider user id and provider id are required.
-    if (uid == null || providerId == null) {
-      throw FirebaseAuthError.internalError(
-          'INTERNAL ASSERT FAILED: Invalid user info response');
-    }
-  }
+      required this.providerId,
+      this.phoneNumber});
 
   UserInfo.fromJson(Map<String, dynamic> map)
       : this(
@@ -81,19 +70,19 @@ class UserInfo {
 /// the Firebase Auth getAccountInfo response.
 class UserRecord {
   final String uid;
-  final String email;
-  final bool emailVerified;
-  final String displayName;
-  final String photoUrl;
-  final String phoneNumber;
-  final bool disabled;
-  final UserMetadata metadata;
-  final List<UserInfo> providerData;
-  final String passwordHash;
-  final String passwordSalt;
-  final Map<String, dynamic> customClaims;
-  final String tenantId;
-  final DateTime tokensValidAfterTime;
+  final String? email;
+  final bool? emailVerified;
+  final String? displayName;
+  final String? photoUrl;
+  final String? phoneNumber;
+  final bool? disabled;
+  final UserMetadata? metadata;
+  final List<UserInfo>? providerData;
+  final String? passwordHash;
+  final String? passwordSalt;
+  final Map<String, dynamic>? customClaims;
+  final String? tenantId;
+  final DateTime? tokensValidAfterTime;
 
   UserRecord.fromJson(Map<String, dynamic> map)
       : this(
@@ -106,7 +95,7 @@ class UserRecord {
             // If disabled is not provided, the account is enabled by default.
             disabled: map['disabled'] ?? false,
             metadata: UserMetadata.fromJson(map),
-            providerData: (map['providerUserInfo'] as List ?? [])
+            providerData: (map['providerUserInfo'] as List? ?? [])
                 .map((v) => UserInfo.fromJson(v))
                 .toList(),
             // If the password hash is redacted (probably due to missing permissions)
@@ -130,7 +119,7 @@ class UserRecord {
             tenantId: map['tenantId']);
 
   UserRecord(
-      {@required this.uid,
+      {required this.uid,
       this.email,
       this.emailVerified,
       this.displayName,
@@ -143,13 +132,7 @@ class UserRecord {
       this.passwordSalt,
       this.customClaims,
       this.tokensValidAfterTime,
-      this.tenantId}) {
-    // The Firebase user id is required.
-    if (uid == null) {
-      throw FirebaseAuthError.internalError(
-          'INTERNAL ASSERT FAILED: Invalid user response');
-    }
-  }
+      this.tenantId});
 
 /*
 
@@ -166,12 +149,12 @@ class UserRecord {
         'photoUrl': photoUrl,
         'phoneNumber': phoneNumber,
         'disabled': disabled,
-        'metadata': metadata.toJson(),
+        'metadata': metadata!.toJson(),
         'passwordHash': passwordHash,
         'passwordSalt': passwordSalt,
         'customClaims': customClaims, // TODO deep copy
         'tokensValidAfterTime': tokensValidAfterTime?.toIso8601String(),
         'tenantId': tenantId,
-        'providerData': providerData.map((v) => v.toJson()).toList()
+        'providerData': providerData!.map((v) => v.toJson()).toList()
       };
 }

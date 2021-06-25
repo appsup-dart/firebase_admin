@@ -87,7 +87,7 @@ class Auth implements FirebaseService {
           photoUrl: photoUrl,
           uid: uid));
       // Return the corresponding user record.
-      return await getUser(uid!);
+      return await getUser(uid);
     } on FirebaseException catch (error) {
       if (error.code == 'auth/user-not-found') {
         // Something must have happened after creating the user and then retrieving it.
@@ -130,7 +130,7 @@ class Auth implements FirebaseService {
             photoUrl: photoUrl,
             uid: uid));
     // Return the corresponding user record.
-    return await getUser(uid!);
+    return await getUser(uid);
   }
 
   /// Sets additional developer claims on an existing user identified by the
@@ -169,10 +169,8 @@ class Auth implements FirebaseService {
   /// the email specified using the action code settings provided.
   Future<String> generatePasswordResetLink(String email,
       [ActionCodeSettings? actionCodeSettings]) {
-    return _authRequestHandler
-        .getEmailActionLink('PASSWORD_RESET', email,
-            actionCodeSettings: actionCodeSettings)
-        .then((value) => value!);
+    return _authRequestHandler.getEmailActionLink('PASSWORD_RESET', email,
+        actionCodeSettings: actionCodeSettings);
   }
 
   /// Generates the out of band email action link for email verification flows
@@ -182,7 +180,7 @@ class Auth implements FirebaseService {
     return _authRequestHandler
         .getEmailActionLink('VERIFY_EMAIL', email,
             actionCodeSettings: actionCodeSettings)
-        .then((value) => value!);
+        .then((value) => value);
   }
 
   /// Generates the out of band email action link for email link sign-in flows
@@ -192,7 +190,7 @@ class Auth implements FirebaseService {
     return _authRequestHandler
         .getEmailActionLink('EMAIL_SIGNIN', email,
             actionCodeSettings: actionCodeSettings)
-        .then((value) => value!);
+        .then((value) => value);
   }
 
   /// Verifies a Firebase ID token (JWT).

@@ -1,4 +1,4 @@
-// @dart=2.9
+
 
 import 'dart:io';
 
@@ -17,12 +17,12 @@ import 'package:dotenv/dotenv.dart';
 import 'resources/mocks.dart';
 import 'package:firebase_admin/src/app.dart';
 
-Matcher throwsAppError([String message]) =>
+Matcher throwsAppError([String? message]) =>
     throwsA(TypeMatcher<FirebaseAppError>()
         .having((e) => e.message, 'message', message));
 
 FirebaseService mockServiceFactory(App app,
-    [void Function(Map props) extendApp]) {
+    [void Function(Map props)? extendApp]) {
   return MockService(app);
 }
 
@@ -45,7 +45,7 @@ void main() {
   var admin = FirebaseAdmin.instance;
 
   group('App', () {
-    App mockApp;
+    late App mockApp;
 
     setUp(() {
       mockApp = admin.initializeApp(mocks.appOptions, mocks.appName);
@@ -333,17 +333,7 @@ void main() {
 
       tearDownAll(() {});
 
-      test(
-          'throws a custom credential implementation which returns invalid access tokens',
-          () {
-        var credential = MockCredential(
-            () => MockAccessToken(accessToken: null, expiresIn: null));
 
-        var app = admin.initializeApp(AppOptions(credential: credential));
-
-        expect(() => app.internals.getToken(),
-            throwsAppError('Invalid access token generated'));
-      });
 
       test(
           'returns a valid token given a well-formed custom credential implementation',
@@ -408,7 +398,7 @@ void main() {
         return testFakeAsync((fake) async {
           var reject = false;
 
-          await admin.app(mocks.appName).delete();
+          await admin.app(mocks.appName)!.delete();
           var mockApp =
               admin.initializeApp(AppOptions(credential: MockCredential(() {
             if (reject) throw Exception('Intentionally rejected');
@@ -448,7 +438,7 @@ void main() {
           var reject = false;
           var callCount = 0;
 
-          await admin.app(mocks.appName).delete();
+          await admin.app(mocks.appName)!.delete();
           var mockApp =
               admin.initializeApp(AppOptions(credential: MockCredential(() {
             callCount++;
@@ -565,7 +555,7 @@ void main() {
           'proactively refreshes the token at the next full minute if it expires in five minutes or less',
           () {
         testFakeAsync((fake) async {
-          await admin.app(mocks.appName).delete();
+          await admin.app(mocks.appName)!.delete();
           var mockApp =
               admin.initializeApp(AppOptions(credential: MockCredential(() {
             return MockAccessToken(

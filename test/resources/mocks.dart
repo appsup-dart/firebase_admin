@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -88,11 +86,6 @@ var appOptionsAuthDB = AppOptions(
   databaseUrl: databaseURL,
 );
 
-final appOptionsReturningNullAccessToken = AppOptions(
-    credential: MockCredential(() => null),
-    databaseUrl: databaseURL,
-    projectId: projectId);
-
 final appOptionsRejectedWhileFetchingAccessToken = AppOptions(
     credential: MockCredential(
         () => throw Exception('Promise intentionally rejected.')),
@@ -105,7 +98,7 @@ final certificateObject =
 const uid = 'someUid';
 
 /// Generates a mocked Firebase ID token.
-String generateIdToken([Map<String, dynamic> overrides]) {
+String generateIdToken([Map<String, dynamic>? overrides]) {
   overrides ??= {};
   final claims = {
     'aud': projectId,
@@ -152,8 +145,8 @@ class MockAccessToken implements AccessToken {
   @override
   final DateTime expirationTime;
 
-  MockAccessToken({this.accessToken, Duration expiresIn})
-      : expirationTime = expiresIn == null ? null : clock.now().add(expiresIn);
+  MockAccessToken({required this.accessToken, required Duration expiresIn})
+      : expirationTime = clock.now().add(expiresIn);
 
   MockAccessToken.fromJson(Map<String, dynamic> json)
       : this(

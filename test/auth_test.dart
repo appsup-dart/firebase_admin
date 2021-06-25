@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -15,19 +13,77 @@ import 'package:mockito/mockito.dart';
 
 import 'resources/mocks.dart';
 
-Matcher throwsFirebaseError([String code]) => throwsA(
+Matcher throwsFirebaseError([String? code]) => throwsA(
     TypeMatcher<FirebaseException>().having((e) => e.code, 'code', code));
 
-class MockAuthRequestHandler extends Mock implements AuthRequestHandler {}
+class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
+  @override
+  Future<String> getEmailActionLink(String requestType, String email,
+          {ActionCodeSettings? actionCodeSettings}) =>
+      super.noSuchMethod(
+          Invocation.method(#getEmailActionLink, [requestType, email],
+              {#actionCodeSettings: actionCodeSettings}),
+          returnValue: Future.value(''));
+
+  @override
+  Future<Map<String, dynamic>> getAccountInfoByUid(String uid) =>
+      super.noSuchMethod(Invocation.method(#getAccountInfoByUid, [uid]),
+          returnValue: Future.value(<String, dynamic>{}));
+
+  @override
+  Future<Map<String, dynamic>> getAccountInfoByEmail(String email) =>
+      super.noSuchMethod(Invocation.method(#getAccountInfoByEmail, [email]),
+          returnValue: Future.value(<String, dynamic>{}));
+
+  @override
+  Future<Map<String, dynamic>> getAccountInfoByPhoneNumber(
+          String phoneNumber) =>
+      super.noSuchMethod(
+          Invocation.method(#getAccountInfoByPhoneNumber, [phoneNumber]),
+          returnValue: Future.value(<String, dynamic>{}));
+
+  @override
+  Future<Map<String, dynamic>> downloadAccount(
+          int? maxResults, String? pageToken) =>
+      super.noSuchMethod(
+          Invocation.method(#downloadAccount, [maxResults, pageToken]),
+          returnValue: Future.value(<String, dynamic>{}));
+
+  @override
+  Future<String> createNewAccount(CreateEditAccountRequest request) =>
+      super.noSuchMethod(Invocation.method(#createNewAccount, [request]),
+          returnValue: Future.value(''));
+
+  @override
+  Future<Map<String, dynamic>> deleteAccount(String uid) =>
+      super.noSuchMethod(Invocation.method(#deleteAccount, [uid]),
+          returnValue: Future.value(<String, dynamic>{}));
+
+  @override
+  Future<String> updateExistingAccount(
+          String uid, CreateEditAccountRequest request) =>
+      super.noSuchMethod(
+          Invocation.method(#updateExistingAccount, [uid, request]),
+          returnValue: Future.value(''));
+
+  @override
+  Future<String> setCustomUserClaims(
+          String uid, Map<String, dynamic>? customUserClaims) =>
+      super.noSuchMethod(
+          Invocation.method(#setCustomUserClaims, [uid, customUserClaims]),
+          returnValue: Future.value(''));
+
+  @override
+  Future<String> revokeRefreshTokens(String uid) =>
+      super.noSuchMethod(Invocation.method(#revokeRefreshTokens, [uid]),
+          returnValue: Future.value(''));
+}
 
 void main() {
   var admin = FirebaseAdmin.instance;
   var mockRequestHandler = MockAuthRequestHandler();
   group('Auth', () {
-    Auth auth,
-        nullAccessTokenAuth,
-        rejectedAccessTokenAuth,
-        mockRequestHandlerAuth;
+    late Auth auth, rejectedAccessTokenAuth, mockRequestHandlerAuth;
 
     setUp(() {
       reset(mockRequestHandler);
@@ -36,11 +92,6 @@ void main() {
       FirebaseTokenVerifier.factory = (app) => MockTokenVerifier(app);
       var mockApp = admin.initializeApp(mocks.appOptions, mocks.appName);
       auth = mockApp.auth();
-
-      nullAccessTokenAuth = admin
-          .initializeApp(
-              mocks.appOptionsReturningNullAccessToken, 'null-access-token')
-          .auth();
 
       rejectedAccessTokenAuth = admin
           .initializeApp(mocks.appOptionsRejectedWhileFetchingAccessToken,
@@ -74,10 +125,6 @@ void main() {
       );
       var expectedError = FirebaseAuthError.userNotFound();
 
-      test('should be rejected given no email', () {
-        expect(auth.generateSignInWithEmailLink(null, actionCodeSettings),
-            throwsFirebaseError('auth/invalid-email'));
-      });
       test('should be rejected given an invalid email', () {
         expect(auth.generateSignInWithEmailLink('invalid', actionCodeSettings),
             throwsFirebaseError('auth/invalid-email'));
@@ -86,13 +133,7 @@ void main() {
         expect(auth.generateSignInWithEmailLink(email, null),
             throwsFirebaseError('auth/argument-error'));
       });
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(
-            nullAccessTokenAuth.generateSignInWithEmailLink(
-                email, actionCodeSettings),
-            throwsFirebaseError('app/invalid-credential'));
-      });
+
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -165,18 +206,11 @@ void main() {
           UserRecord.fromJson(expectedGetAccountInfoResult['users'][0]);
       final expectedError = FirebaseAuthError.userNotFound();
 
-      test('should be rejected given no uid', () {
-        expect(auth.getUser(null), throwsFirebaseError('auth/invalid-uid'));
-      });
       test('should be rejected given an invalid uid', () {
         expect(auth.getUser(List.filled(129, 'a').join()),
             throwsFirebaseError('auth/invalid-uid'));
       });
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(nullAccessTokenAuth.getUser(uid),
-            throwsFirebaseError('app/invalid-credential'));
-      });
+
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -211,19 +245,11 @@ void main() {
           UserRecord.fromJson(expectedGetAccountInfoResult['users'][0]);
       final expectedError = FirebaseAuthError.userNotFound();
 
-      test('should be rejected given no email', () {
-        expect(auth.getUserByEmail(null),
-            throwsFirebaseError('auth/invalid-email'));
-      });
       test('should be rejected given an invalid email', () {
         expect(auth.getUserByEmail('name-example-com'),
             throwsFirebaseError('auth/invalid-email'));
       });
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(nullAccessTokenAuth.getUserByEmail(email),
-            throwsFirebaseError('app/invalid-credential'));
-      });
+
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -259,20 +285,12 @@ void main() {
           UserRecord.fromJson(expectedGetAccountInfoResult['users'][0]);
       final expectedError = FirebaseAuthError.userNotFound();
 
-      test('should be rejected given no no phone number', () {
-        expect(auth.getUserByPhoneNumber(null),
-            throwsFirebaseError('auth/invalid-phone-number'));
-      });
       test('should be rejected given an invalid phone number', () {
         const invalidPhoneNumber = 'invalid';
         expect(auth.getUserByPhoneNumber(invalidPhoneNumber),
             throwsFirebaseError('auth/invalid-phone-number'));
       });
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(nullAccessTokenAuth.getUserByPhoneNumber(phoneNumber),
-            throwsFirebaseError('app/invalid-credential'));
-      });
+
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -325,11 +343,7 @@ void main() {
         expect(auth.listUsers(invalidResults),
             throwsFirebaseError('auth/argument-error'));
       });
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(nullAccessTokenAuth.listUsers(maxResult),
-            throwsFirebaseError('app/invalid-credential'));
-      });
+
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -411,12 +425,6 @@ void main() {
         expect(auth.createUser(), throwsFirebaseError('auth/argument-error'));
       });
 
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(_createUser(nullAccessTokenAuth),
-            throwsFirebaseError('app/invalid-credential'));
-      });
-
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -481,19 +489,12 @@ void main() {
       };
       final expectedError = FirebaseAuthError.userNotFound();
 
-      test('should be rejected given no uid', () {
-        expect(auth.deleteUser(null), throwsFirebaseError('auth/invalid-uid'));
-      });
       test('should be rejected given an invalid uid', () {
         final invalidUid = List.filled(129, 'a').join();
         expect(auth.deleteUser(invalidUid),
             throwsFirebaseError('auth/invalid-uid'));
       });
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(nullAccessTokenAuth.deleteUser(uid),
-            throwsFirebaseError('app/invalid-credential'));
-      });
+
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -543,10 +544,6 @@ void main() {
             phoneNumber: expectedUserRecord.phoneNumber,
           );
 
-      test('should be rejected given no uid', () {
-        expect(
-            _updateUser(auth, null), throwsFirebaseError('auth/invalid-uid'));
-      });
       test('should be rejected given an invalid uid', () {
         final invalidUid = List.filled(129, 'a').join();
         expect(_updateUser(auth, invalidUid),
@@ -556,11 +553,7 @@ void main() {
         expect(
             auth.updateUser(uid), throwsFirebaseError('auth/argument-error'));
       });
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(_updateUser(nullAccessTokenAuth, uid),
-            throwsFirebaseError('app/invalid-credential'));
-      });
+
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -608,20 +601,13 @@ void main() {
         'admin': true,
         'groupId': '123456',
       };
-      test('should be rejected given no uid', () {
-        expect(auth.setCustomUserClaims(null, customClaims),
-            throwsFirebaseError('auth/invalid-uid'));
-      });
+
       test('should be rejected given an invalid uid', () {
         final invalidUid = List.filled(129, 'a').join();
         expect(auth.setCustomUserClaims(invalidUid, customClaims),
             throwsFirebaseError('auth/invalid-uid'));
       });
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(nullAccessTokenAuth.setCustomUserClaims(uid, customClaims),
-            throwsFirebaseError('app/invalid-credential'));
-      });
+
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -649,20 +635,13 @@ void main() {
     group('Auth.revokeRefreshTokens()', () {
       const uid = 'abcdefghijklmnopqrstuvwxyz';
       final expectedError = FirebaseAuthError.userNotFound();
-      test('should be rejected given no uid', () {
-        expect(auth.revokeRefreshTokens(null),
-            throwsFirebaseError('auth/invalid-uid'));
-      });
+
       test('should be rejected given an invalid uid', () {
         final invalidUid = List.filled(129, 'a').join();
         expect(auth.revokeRefreshTokens(invalidUid),
             throwsFirebaseError('auth/invalid-uid'));
       });
-      test('should be rejected given an app which returns null access tokens',
-          () {
-        expect(nullAccessTokenAuth.revokeRefreshTokens(uid),
-            throwsFirebaseError('app/invalid-credential'));
-      });
+
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
@@ -690,7 +669,7 @@ void main() {
     });
 
     group('Auth.verifyIdToken()', () {
-      String mockIdToken;
+      late String mockIdToken;
       final expectedAccountInfoResponse = _getValidGetAccountInfoResponse();
       final expectedUserRecord =
           UserRecord.fromJson(expectedAccountInfoResponse['users'][0]);
@@ -699,13 +678,7 @@ void main() {
       setUp(() {
         mockIdToken = mocks.generateIdToken();
       });
-      test('should be fulfilled given an app which returns null access tokens',
-          () async {
-        // verifyIdToken() does not rely on an access token and therefore works in this scenario.
-        var token = await nullAccessTokenAuth.verifyIdToken(mockIdToken);
-        expect(token, isNotNull);
-        expect(token.claims.subject, 'someUid');
-      });
+
       test(
           'should be fulfilled given an app which fails to generate access tokens',
           () async {
@@ -730,7 +703,7 @@ void main() {
           () {
         // One second before validSince.
         final oneSecBeforeValidSince =
-            validSince.subtract(Duration(seconds: 1));
+            validSince!.subtract(Duration(seconds: 1));
         // Simulate revoked ID token returned with auth_time one second before validSince.
         var mockIdToken = mocks.generateIdToken({
           'auth_time': oneSecBeforeValidSince.millisecondsSinceEpoch ~/ 1000
@@ -747,7 +720,7 @@ void main() {
           () async {
         // One second before validSince.
         final oneSecBeforeValidSince =
-            validSince.subtract(Duration(seconds: 1));
+            validSince!.subtract(Duration(seconds: 1));
         // Simulate revoked ID token returned with auth_time one second before validSince.
         var mockIdToken = mocks.generateIdToken({
           'auth_time': oneSecBeforeValidSince.millisecondsSinceEpoch ~/ 1000
@@ -785,7 +758,7 @@ void main() {
         };
         // Confirm null tokensValidAfterTime on user.
         expect(
-            UserRecord.fromJson(noValidSinceGetAccountInfoResponse['users'][0])
+            UserRecord.fromJson(noValidSinceGetAccountInfoResponse['users']![0])
                 .tokensValidAfterTime,
             isNull);
         // Simulate getUser returns the expected user with no validSince.

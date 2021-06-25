@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/credential.dart';
 
@@ -19,7 +17,7 @@ void main() async {
   var projectId = 'some-project';
   // create an app
   var app = FirebaseAdmin.instance.initializeApp(AppOptions(
-      credential: credential ?? Credentials.applicationDefault(),
+      credential: credential,
       projectId: projectId,
       storageBucket: '$projectId.appspot.com'));
 

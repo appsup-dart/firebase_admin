@@ -10,7 +10,7 @@ import '../utils/validator.dart' as validator;
 /// This verifies ID tokens and session cookies.
 class FirebaseTokenVerifier {
   final App app;
-  final String projectId;
+  final String? projectId;
 
   final String _verifyApiName = 'verifyIdToken()';
   final String _jwtName = 'ID token';
@@ -29,12 +29,6 @@ class FirebaseTokenVerifier {
 
   /// Verifies the format and signature of a Firebase Auth JWT token.
   Future<IdToken> verifyJwt(String jwtToken) async {
-    if (jwtToken == null) {
-      throw FirebaseAuthError.invalidArgument(
-        'First argument to $_verifyApiName must be a Firebase $_jwtName string.',
-      );
-    }
-
     var client = await getOpenIdClient();
 
     var credential = client.createCredential(idToken: jwtToken);
@@ -54,7 +48,7 @@ class FirebaseTokenVerifier {
 
   @visibleForTesting
   Future<Client> getOpenIdClient() async {
-    var issuer = await Issuer.discover(Issuer.firebase(projectId));
+    var issuer = await Issuer.discover(Issuer.firebase(projectId!));
     return Client(issuer, projectId);
   }
 }

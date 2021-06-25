@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_admin/src/utils/error.dart';
-import 'package:meta/meta.dart';
 
 import 'app.dart';
 import 'auth/credential.dart';
@@ -16,8 +15,7 @@ import 'package:dotenv/dotenv.dart';
 class FirebaseAdmin {
   final Map<String, App> _apps = {};
 
-  static FirebaseAdmin get instance => _instance ??= FirebaseAdmin._();
-  static FirebaseAdmin _instance;
+  static final FirebaseAdmin instance = FirebaseAdmin._();
 
   static const String defaultAppName = '[DEFAULT]';
   static const String firebaseConfigVar = 'FIREBASE_CONFIG';
@@ -51,9 +49,8 @@ class FirebaseAdmin {
   ///   * [App]
   ///   * [cert]
   ///   * [certFromPath]
-  App initializeApp([AppOptions options, String name = defaultAppName]) {
+  App initializeApp([AppOptions? options, String name = defaultAppName]) {
     options ??= _loadOptionsFromEnvVar(Credentials.applicationDefault());
-    name ??= defaultAppName;
     if (name.isEmpty) {
       throw FirebaseAppError.invalidAppName(
         'Invalid Firebase app name "$name" provided. App name must be a non-empty string.',
@@ -81,10 +78,10 @@ class FirebaseAdmin {
 
   /// Returns the FirebaseApp instance with the provided name (or the default
   /// FirebaseApp instance if no name is provided).
-  App app([String appName = defaultAppName]) {
-    if (appName == null || appName.isEmpty) {
+  App? app([String appName = defaultAppName]) {
+    if (appName.isEmpty) {
       throw FirebaseAppError.invalidAppName(
-        'Invalid Firebase app name "${appName}" provided. App name must be a non-empty string.',
+        'Invalid Firebase app name "$appName" provided. App name must be a non-empty string.',
       );
     } else if (_apps[appName] == null) {
       var errorMessage = appName == defaultAppName
@@ -104,9 +101,9 @@ class FirebaseAdmin {
 
   /// Creates [App] certificate.
   Credential cert({
-    @required String projectId,
-    @required String clientEmail,
-    @required String privateKey,
+    required String projectId,
+    required String clientEmail,
+    required String privateKey,
   }) {
     throw UnimplementedError();
   }
@@ -121,17 +118,17 @@ class FirebaseAdmin {
   /// directly.
   /// If the environment variable contains a string that starts with '{' it will
   /// be parsed as JSON, otherwise it will be assumed to be pointing to a file.
-  AppOptions _loadOptionsFromEnvVar(Credential credential) {
+  AppOptions _loadOptionsFromEnvVar(Credential? credential) {
     final config = env[firebaseConfigVar];
     if (config == null || config.isEmpty) {
-      return AppOptions(credential: credential);
+      return AppOptions(credential: credential!);
     }
     try {
       final contents =
           config.startsWith('{') ? config : File(config).readAsStringSync();
       var v = json.decode(contents) as Map;
       return AppOptions(
-        credential: credential,
+        credential: credential!,
         projectId: v['projectId'],
         databaseUrl: v['databaseURL'],
         storageBucket: v['storageBucket'],

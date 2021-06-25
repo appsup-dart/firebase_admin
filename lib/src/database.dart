@@ -4,30 +4,33 @@ import '../firebase_admin.dart';
 import 'app/app_extension.dart';
 import 'app.dart';
 
-import 'package:firebase_dart/firebase_dart.dart';
+import 'package:firebase_dart/standalone_database.dart';
 
 /// Firebase Realtime Database service.
 class Database implements FirebaseService {
-  final Firebase _rootRef;
+  final StandaloneFirebaseDatabase _database;
 
   @override
   final App app;
 
   /// Do not call this constructor directly. Instead, use app().database.
   Database(this.app)
-      : _rootRef = Firebase(app.options.databaseUrl ??
+      : _database = StandaloneFirebaseDatabase(app.options.databaseUrl ??
             'https://${app.projectId}.firebaseio.com/') {
-    _rootRef.authenticate(app.internals.getToken().then((v) => v.accessToken));
-    app.internals.addAuthTokenListener((token) => _rootRef.authenticate(token));
+    _database.authenticate(app.internals.getToken().then((v) => v.accessToken));
+
+    app.internals
+        .addAuthTokenListener((token) => _database.authenticate(token));
   }
 
   /// Returns a [Reference] representing the location in the Database
   /// corresponding to the provided [path]. If no path is provided, the
   /// Reference will point to the root of the Database.
-  Firebase ref([String path]) => _rootRef.child(path ?? '');
+  DatabaseReference ref([String? path]) =>
+      _database.reference().child(path ?? '');
 
   @override
   Future<void> delete() async {
-    // TODO: implement delete
+    await _database.app.delete();
   }
 }

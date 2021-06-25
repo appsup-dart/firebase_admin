@@ -9,7 +9,6 @@ import 'utils/error.dart';
 import 'service.dart';
 import 'auth.dart';
 import 'credential.dart';
-import 'package:meta/meta.dart';
 
 /// Represents initialized Firebase application and provides access to the
 /// app's services.
@@ -20,7 +19,6 @@ class App {
 
   final Map<Type, FirebaseService> _services = {};
 
-  @visibleForTesting
   final FirebaseAppInternals _internals;
 
   /// Do not call this constructor directly. Instead, use
@@ -69,14 +67,14 @@ class App {
 
   T _getService<T extends FirebaseService>(T Function() factory) {
     _checkDestroyed();
-    return _services[T] ??= factory();
+    return (_services[T] ??= factory()) as T;
   }
 
   /// Throws an Error if the FirebaseApp instance has already been deleted.
   void _checkDestroyed() {
     if (internals.isDeleted) {
       throw FirebaseAppError.appDeleted(
-        'Firebase app named "${_name}" has already been deleted.',
+        'Firebase app named "$_name" has already been deleted.',
       );
     }
   }
@@ -98,16 +96,16 @@ class AppOptions {
   final Credential credential;
 
   /// The URL of the Realtime Database from which to read and write data.
-  final String databaseUrl;
+  final String? databaseUrl;
 
   /// The ID of the Google Cloud project associated with the App.
-  final String projectId;
+  final String? projectId;
 
   /// The name of the default Cloud Storage bucket associated with the App.
-  final String storageBucket;
+  final String? storageBucket;
 
   AppOptions({
-    this.credential,
+    required this.credential,
     this.databaseUrl,
     this.projectId,
     this.storageBucket,

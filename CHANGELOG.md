@@ -1,4 +1,8 @@
 
+## 0.2.0-dev.0
+
+- null safety
+
 ## 0.1.4
 
 - upgrade openid_client dependency to 0.3.1

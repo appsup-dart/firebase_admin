@@ -9,7 +9,6 @@ import 'utils/error.dart';
 import 'service.dart';
 import 'auth.dart';
 import 'credential.dart';
-import 'package:meta/meta.dart';
 
 /// Represents initialized Firebase application and provides access to the
 /// app's services.
@@ -20,7 +19,6 @@ class App {
 
   final Map<Type, FirebaseService> _services = {};
 
-  @visibleForTesting
   final FirebaseAppInternals _internals;
 
   /// Do not call this constructor directly. Instead, use
@@ -76,7 +74,7 @@ class App {
   void _checkDestroyed() {
     if (internals.isDeleted) {
       throw FirebaseAppError.appDeleted(
-        'Firebase app named "${_name}" has already been deleted.',
+        'Firebase app named "$_name" has already been deleted.',
       );
     }
   }

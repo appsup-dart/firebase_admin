@@ -30,8 +30,8 @@ class Storage implements FirebaseService {
       return storageClient.bucket(name);
     }
     throw FirebaseStorageError.invalidArgument(
-        'Bucket name not specified or invalid. Specify a valid bucket name via the ' +
-            'storageBucket option when initializing the app, or specify the bucket name ' +
-            'explicitly when calling the getBucket() method.');
+        'Bucket name not specified or invalid. Specify a valid bucket name via the '
+        'storageBucket option when initializing the app, or specify the bucket name '
+        'explicitly when calling the getBucket() method.');
   }
 }

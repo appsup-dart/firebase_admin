@@ -84,7 +84,7 @@ class FirebaseAdmin {
   App app([String appName = defaultAppName]) {
     if (appName == null || appName.isEmpty) {
       throw FirebaseAppError.invalidAppName(
-        'Invalid Firebase app name "${appName}" provided. App name must be a non-empty string.',
+        'Invalid Firebase app name "$appName" provided. App name must be a non-empty string.',
       );
     } else if (_apps[appName] == null) {
       var errorMessage = appName == defaultAppName

@@ -343,7 +343,7 @@ class CreateEditAccountRequest {
     // Check claims payload does not exceed maxmimum size.
     if (s.length > _maxClaimsPayloadSize) {
       throw FirebaseAuthError.claimsTooLarge(
-        'Developer claims payload should not exceed ${_maxClaimsPayloadSize} characters.',
+        'Developer claims payload should not exceed $_maxClaimsPayloadSize characters.',
       );
     }
 

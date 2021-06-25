@@ -206,7 +206,7 @@ class Credentials {
       }
 
       throw FirebaseAppError.invalidCredential(
-          'Failed to read credentials from file ${filePath}: $error');
+          'Failed to read credentials from file $filePath: $error');
     }
 
     try {

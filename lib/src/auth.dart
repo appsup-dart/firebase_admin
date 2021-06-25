@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/auth/token_generator.dart';
 import 'package:firebase_admin/src/auth/token_verifier.dart';
@@ -9,7 +7,6 @@ import 'app.dart';
 import 'auth/auth_api_request.dart';
 import 'auth/user_record.dart';
 import 'service.dart';
-import 'package:meta/meta.dart';
 
 /// The Firebase Auth service interface.
 class Auth implements FirebaseService {
@@ -61,22 +58,23 @@ class Auth implements FirebaseService {
   /// and starting from the offset as specified by [pageToken].
   ///
   /// This is used to retrieve all the users of a specified project in batches.
-  Future<ListUsersResult> listUsers([num maxResults, String pageToken]) async {
-    var response =
-        await _authRequestHandler.downloadAccount(maxResults, pageToken);
+  Future<ListUsersResult> listUsers(
+      [num? maxResults, String? pageToken]) async {
+    var response = await _authRequestHandler.downloadAccount(
+        maxResults as int?, pageToken);
     return ListUsersResult.fromJson(response);
   }
 
   /// Creates a new user.
   Future<UserRecord> createUser({
-    bool disabled,
-    String displayName,
-    String email,
-    bool emailVerified,
-    String password,
-    String phoneNumber,
-    String photoUrl,
-    String uid,
+    bool? disabled,
+    String? displayName,
+    String? email,
+    bool? emailVerified,
+    String? password,
+    String? phoneNumber,
+    String? photoUrl,
+    String? uid,
   }) async {
     try {
       uid = await _authRequestHandler.createNewAccount(CreateEditAccountRequest(
@@ -89,7 +87,7 @@ class Auth implements FirebaseService {
           photoUrl: photoUrl,
           uid: uid));
       // Return the corresponding user record.
-      return await getUser(uid);
+      return await getUser(uid!);
     } on FirebaseException catch (error) {
       if (error.code == 'auth/user-not-found') {
         // Something must have happened after creating the user and then retrieving it.
@@ -111,14 +109,14 @@ class Auth implements FirebaseService {
   /// remove them from the user record. When phone number is removed, also the
   /// corresponding provider will be removed.
   Future<UserRecord> updateUser(
-    String uid, {
-    bool disabled,
-    String displayName,
-    String email,
-    bool emailVerified,
-    String password,
-    String phoneNumber,
-    String photoUrl,
+    String? uid, {
+    bool? disabled,
+    String? displayName,
+    String? email,
+    bool? emailVerified,
+    String? password,
+    String? phoneNumber,
+    String? photoUrl,
   }) async {
     uid = await _authRequestHandler.updateExistingAccount(
         uid,
@@ -132,7 +130,7 @@ class Auth implements FirebaseService {
             photoUrl: photoUrl,
             uid: uid));
     // Return the corresponding user record.
-    return await getUser(uid);
+    return await getUser(uid!);
   }
 
   /// Sets additional developer claims on an existing user identified by the
@@ -170,25 +168,31 @@ class Auth implements FirebaseService {
   /// Generates the out of band email action link for password reset flows for
   /// the email specified using the action code settings provided.
   Future<String> generatePasswordResetLink(String email,
-      [ActionCodeSettings actionCodeSettings]) {
-    return _authRequestHandler.getEmailActionLink('PASSWORD_RESET', email,
-        actionCodeSettings: actionCodeSettings);
+      [ActionCodeSettings? actionCodeSettings]) {
+    return _authRequestHandler
+        .getEmailActionLink('PASSWORD_RESET', email,
+            actionCodeSettings: actionCodeSettings)
+        .then((value) => value!);
   }
 
   /// Generates the out of band email action link for email verification flows
   /// for the email specified using the action code settings provided.
   Future<String> generateEmailVerificationLink(String email,
-      [ActionCodeSettings actionCodeSettings]) {
-    return _authRequestHandler.getEmailActionLink('VERIFY_EMAIL', email,
-        actionCodeSettings: actionCodeSettings);
+      [ActionCodeSettings? actionCodeSettings]) {
+    return _authRequestHandler
+        .getEmailActionLink('VERIFY_EMAIL', email,
+            actionCodeSettings: actionCodeSettings)
+        .then((value) => value!);
   }
 
   /// Generates the out of band email action link for email link sign-in flows
   /// for the email specified using the action code settings provided.
   Future<String> generateSignInWithEmailLink(
-      String email, ActionCodeSettings actionCodeSettings) {
-    return _authRequestHandler.getEmailActionLink('EMAIL_SIGNIN', email,
-        actionCodeSettings: actionCodeSettings);
+      String email, ActionCodeSettings? actionCodeSettings) {
+    return _authRequestHandler
+        .getEmailActionLink('EMAIL_SIGNIN', email,
+            actionCodeSettings: actionCodeSettings)
+        .then((value) => value!);
   }
 
   /// Verifies a Firebase ID token (JWT).
@@ -214,7 +218,7 @@ class Auth implements FirebaseService {
   /// Returns a [Future] containing a custom token string for the provided [uid]
   /// and payload.
   Future<String> createCustomToken(String uid,
-      [Map<String, dynamic> developerClaims]) async {
+      [Map<String, dynamic>? developerClaims]) async {
     return _tokenGenerator.createCustomToken(uid, developerClaims);
   }
 
@@ -227,9 +231,9 @@ class Auth implements FirebaseService {
     // If no tokens valid after time available, token is not revoked.
     if (user.tokensValidAfterTime != null) {
       // Get the ID token authentication time.
-      final authTimeUtc = decodedIdToken.claims.authTime;
+      final authTimeUtc = decodedIdToken.claims.authTime!;
       // Get user tokens valid after time.
-      final validSinceUtc = user.tokensValidAfterTime;
+      final validSinceUtc = user.tokensValidAfterTime!;
       // Check if authentication time is older than valid since time.
       if (authTimeUtc.isBefore(validSinceUtc)) {
         throw FirebaseAuthError.idTokenRevoked();
@@ -249,30 +253,30 @@ class ActionCodeSettings {
   final String url;
 
   /// Specifies whether to open the link via a mobile app or a browser
-  final bool handleCodeInApp;
+  final bool? handleCodeInApp;
 
   /// The bundle ID of the iOS app where the link should be handled if the
   /// application is already installed on the device.
-  final String iosBundleId;
+  final String? iosBundleId;
 
   /// The Android package name of the app where the link should be handled if
   /// the Android app is installed.
-  final String androidPackageName;
+  final String? androidPackageName;
 
   /// Specifies whether to install the Android app if the device supports it and
   /// the app is not already installed.
-  final bool androidInstallApp;
+  final bool? androidInstallApp;
 
   /// The minimum version for Android app.
-  final String androidMinimumVersion;
+  final String? androidMinimumVersion;
 
   /// The dynamic link domain to use for the current link if it is to be opened
   /// using Firebase Dynamic Links, as multiple dynamic link domains can be
   /// configured per project.
-  final String dynamicLinkDomain;
+  final String? dynamicLinkDomain;
 
   ActionCodeSettings(
-      {@required this.url,
+      {required this.url,
       this.handleCodeInApp,
       this.iosBundleId,
       this.androidPackageName,
@@ -285,9 +289,9 @@ class ActionCodeSettings {
 /// Response object for a listUsers operation.
 class ListUsersResult {
   final List<UserRecord> users;
-  final String pageToken;
+  final String? pageToken;
 
-  ListUsersResult({this.users, this.pageToken});
+  ListUsersResult({required this.users, this.pageToken});
 
   ListUsersResult.fromJson(Map<String, dynamic> map)
       : this(

@@ -1,4 +1,4 @@
-// @dart=2.9
+
 
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/utils/api_request.dart';
@@ -17,7 +17,7 @@ class Storage implements FirebaseService {
 
   Storage(this.app)
       : storageClient = gcloud.Storage(
-            AuthorizedHttpClient(app, Duration(seconds: 25)), app.projectId);
+            AuthorizedHttpClient(app, Duration(seconds: 25)), app.projectId!);
 
   @override
   Future<void> delete() async {}
@@ -26,7 +26,7 @@ class Storage implements FirebaseService {
   ///
   /// Returned reference can be used to upload and download content from Google
   /// Cloud Storage.
-  gcloud.Bucket bucket([String name]) {
+  gcloud.Bucket bucket([String? name]) {
     name ??= app.options.storageBucket;
     if (name != null && name.isNotEmpty) {
       return storageClient.bucket(name);

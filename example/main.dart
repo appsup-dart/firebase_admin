@@ -17,7 +17,7 @@ void main() async {
   var projectId = 'some-project';
   // create an app
   var app = FirebaseAdmin.instance.initializeApp(AppOptions(
-      credential: credential ?? Credentials.applicationDefault(),
+      credential: credential,
       projectId: projectId,
       storageBucket: '$projectId.appspot.com'));
 

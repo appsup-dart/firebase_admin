@@ -47,8 +47,6 @@ class FirebaseTokenGenerator {
           'First argument to createCustomToken() must be a non-empty string uid.');
     }
 
-    developerClaims ??= {};
-
     for (var key in developerClaims.keys) {
       if (blacklistedClaims.contains(key)) {
         throw FirebaseAuthError.invalidArgument(

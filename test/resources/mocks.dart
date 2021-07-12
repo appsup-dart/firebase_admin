@@ -86,11 +86,6 @@ var appOptionsAuthDB = AppOptions(
   databaseUrl: databaseURL,
 );
 
-final appOptionsReturningNullAccessToken = AppOptions(
-    credential: MockCredential(() => null),
-    databaseUrl: databaseURL,
-    projectId: projectId);
-
 final appOptionsRejectedWhileFetchingAccessToken = AppOptions(
     credential: MockCredential(
         () => throw Exception('Promise intentionally rejected.')),
@@ -103,7 +98,7 @@ final certificateObject =
 const uid = 'someUid';
 
 /// Generates a mocked Firebase ID token.
-String generateIdToken([Map<String, dynamic> overrides]) {
+String generateIdToken([Map<String, dynamic>? overrides]) {
   overrides ??= {};
   final claims = {
     'aud': projectId,
@@ -128,8 +123,17 @@ class MockTokenVerifier extends FirebaseTokenVerifier {
 
   @override
   Future<Client> getOpenIdClient() async {
-    var issuer = Issuer(OpenIdProviderMetadata.fromJson(json.decode(
-        File('test/resources/openid-configuration.json').readAsStringSync())));
+    var config = json.decode(
+        File('test/resources/openid-configuration.json').readAsStringSync());
+
+    var uri = Uri.parse(config['jwks_uri']);
+    if (uri.scheme.isEmpty) {
+      var content = File(uri.toFilePath()).readAsStringSync();
+      config['jwks_uri'] =
+          Uri.dataFromString(content, mimeType: 'application/json').toString();
+    }
+
+    var issuer = Issuer(OpenIdProviderMetadata.fromJson(config));
     return Client(issuer, projectId);
   }
 }
@@ -141,8 +145,8 @@ class MockAccessToken implements AccessToken {
   @override
   final DateTime expirationTime;
 
-  MockAccessToken({this.accessToken, Duration expiresIn})
-      : expirationTime = expiresIn == null ? null : clock.now().add(expiresIn);
+  MockAccessToken({required this.accessToken, required Duration expiresIn})
+      : expirationTime = clock.now().add(expiresIn);
 
   MockAccessToken.fromJson(Map<String, dynamic> json)
       : this(

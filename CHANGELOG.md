@@ -1,5 +1,5 @@
 
-## 0.2.0-dev.1
+## 0.2.0-dev.2
 
 - null safety
 

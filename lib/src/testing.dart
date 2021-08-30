@@ -6,14 +6,24 @@ import 'package:firebase_admin/src/auth/token_verifier.dart';
 import 'package:firebase_admin/src/credential.dart';
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/app.dart';
+import 'package:jose/jose.dart';
 import 'package:openid_client/openid_client.dart' hide Credential;
 
 class ServiceAccountMockCredential extends ServiceAccountCredential
     with MockCredentialMixin {
   @override
-  final AccessToken Function() tokenFactory;
-  ServiceAccountMockCredential(
-      [this.tokenFactory = MockCredentialMixin.defaultFactory])
+  late final AccessToken Function() tokenFactory = () {
+    return MockAccessToken.fromJson({
+      'access_token': (JsonWebSignatureBuilder()
+            ..content = JsonWebTokenClaims.fromJson(
+                {'sub': 'mock-user', 'provider_id': 'testing'}).toJson()
+            ..addRecipient(certificate.privateKey, algorithm: 'RS256'))
+          .build()
+          .toCompactSerialization(),
+      'expires_in': 3600,
+    });
+  };
+  ServiceAccountMockCredential()
       : super({
           'type': 'service_account',
           'project_id': 'project_id',

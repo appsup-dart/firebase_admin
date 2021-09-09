@@ -1,7 +1,5 @@
-import 'package:clock/clock.dart';
 import 'package:firebase_admin/src/auth/credential.dart';
 import 'package:firebase_admin/src/testing.dart';
-import 'package:jose/jose.dart';
 import 'package:firebase_admin/testing.dart';
 import 'package:firebase_admin/src/app.dart';
 
@@ -49,21 +47,6 @@ const uid = 'someUid';
 
 /// Generates a mocked Firebase ID token.
 String generateIdToken([Map<String, dynamic>? overrides]) {
-  overrides ??= {};
-  final claims = {
-    'aud': projectId,
-    'exp': clock.now().add(Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000,
-    'iss': 'https://securetoken.google.com/' + projectId,
-    'sub': uid,
-    'auth_time': clock.now().millisecondsSinceEpoch ~/ 1000,
-    ...overrides,
-  };
-
-  var builder = JsonWebSignatureBuilder()
-    ..jsonContent = claims
-    ..setProtectedHeader('kid', certificateObject.certificate.privateKey.keyId)
-    ..addRecipient(certificateObject.certificate.privateKey,
-        algorithm: 'RS256');
-
-  return builder.build().toCompactSerialization();
+  return FirebaseAdmin.instance.generateMockIdToken(
+      projectId: projectId, uid: uid, overrides: overrides);
 }

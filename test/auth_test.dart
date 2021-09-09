@@ -3,9 +3,8 @@ import 'dart:io';
 
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/auth/auth_api_request.dart';
-import 'package:firebase_admin/src/auth/token_verifier.dart';
 import 'package:firebase_admin/src/auth/user_record.dart';
-import 'package:firebase_admin/src/testing.dart';
+import 'package:firebase_admin/testing.dart';
 import 'package:jose/jose.dart';
 import 'package:openid_client/openid_client.dart';
 import 'package:test/test.dart';
@@ -90,7 +89,7 @@ void main() {
       reset(mockRequestHandler);
     });
     setUpAll(() {
-      FirebaseTokenVerifier.factory = (app) => MockTokenVerifier(app);
+      FirebaseAdmin.instance.setupTesting();
       var mockApp = admin.initializeApp(mocks.appOptions, mocks.appName);
       auth = mockApp.auth();
 

@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,6 +7,10 @@ import 'package:openid_client/openid_client_io.dart';
 import 'auth/credential.dart';
 import 'utils/error.dart';
 import 'package:path/path.dart' as path;
+
+void setApplicationDefaultCredential(Credential? credential) {
+  Credentials._globalAppDefaultCred = credential;
+}
 
 class Credentials {
   static Credential? _globalAppDefaultCred;

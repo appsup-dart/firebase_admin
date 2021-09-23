@@ -24,7 +24,7 @@ class ServiceAccountMockCredential extends ServiceAccountCredential
     });
   };
   ServiceAccountMockCredential()
-      : super({
+      : super.fromJson({
           'type': 'service_account',
           'project_id': 'project_id',
           'private_key_id': 'aaaaaaaaaabbbbbbbbbbccccccccccdddddddddd',

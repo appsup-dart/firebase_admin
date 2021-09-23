@@ -78,11 +78,29 @@ class ServiceAccountCredential extends _OpenIdCredential
   @override
   final Certificate certificate;
 
-  ServiceAccountCredential(serviceAccountPathOrObject)
-      : certificate = serviceAccountPathOrObject is String
-            ? Certificate.fromPath(serviceAccountPathOrObject)
-            : Certificate.fromJson(serviceAccountPathOrObject),
-        super(null, null); // TODO two distinct constructors
+  ServiceAccountCredential.fromJson(Map<String, dynamic> json)
+      : certificate = Certificate.fromJson(json),
+        super(json['client_id']!, null);
+
+  factory ServiceAccountCredential(serviceAccountPathOrObject) {
+    {
+      if (serviceAccountPathOrObject is Map) {
+        return ServiceAccountCredential.fromJson(
+            serviceAccountPathOrObject.cast());
+      }
+      try {
+        return ServiceAccountCredential.fromJson(
+            json.decode(File(serviceAccountPathOrObject).readAsStringSync()));
+      } on FirebaseException {
+        rethrow;
+      } catch (error) {
+        // Throw a nicely formed error message if the file contents cannot be parsed
+        throw FirebaseAppError.invalidCredential(
+          'Failed to parse certificate key file: $error',
+        );
+      }
+    }
+  }
 
   String _createAuthJwt() {
     final claims = {
@@ -114,7 +132,7 @@ class ServiceAccountCredential extends _OpenIdCredential
 }
 
 abstract class _OpenIdCredential implements Credential {
-  final String? clientId;
+  final String clientId;
   final String? clientSecret;
 
   _OpenIdCredential(this.clientId, this.clientSecret);

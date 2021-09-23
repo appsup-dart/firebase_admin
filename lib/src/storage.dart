@@ -1,5 +1,3 @@
-
-
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/utils/api_request.dart';
 import 'package:gcloud/storage.dart' as gcloud;
@@ -17,7 +15,7 @@ class Storage implements FirebaseService {
 
   Storage(this.app)
       : storageClient = gcloud.Storage(
-            AuthorizedHttpClient(app, Duration(seconds: 25)), app.projectId!);
+            AuthorizedHttpClient(app, Duration(seconds: 25)), app.projectId);
 
   @override
   Future<void> delete() async {}

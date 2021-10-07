@@ -1,5 +1,3 @@
-
-
 import 'dart:io';
 
 import 'package:firebase_admin/src/auth/credential.dart';
@@ -8,18 +6,18 @@ import '../../firebase_admin.dart';
 import '../credential.dart';
 
 extension GetProjectIdExtension on App {
-  String? get projectId => _getProjectId(this);
+  String get projectId => _getProjectId(this);
 }
 
-String? _getProjectId(App app) {
+String _getProjectId(App app) {
   final options = app.options;
   if (options.projectId != null && options.projectId!.isNotEmpty) {
-    return options.projectId;
+    return options.projectId!;
   }
 
   final cert = _tryGetCertificate(options.credential);
   if (cert != null && cert.projectId != null && cert.projectId!.isNotEmpty) {
-    return cert.projectId;
+    return cert.projectId!;
   }
 
   final projectId = Platform.environment['GOOGLE_CLOUD_PROJECT'] ??
@@ -27,7 +25,11 @@ String? _getProjectId(App app) {
   if (projectId != null && projectId.isNotEmpty) {
     return projectId;
   }
-  return null;
+
+  throw FirebaseAuthError.invalidCredential(
+    'Must initialize app with a cert credential or set your Firebase project ID as the '
+    'GOOGLE_CLOUD_PROJECT environment variable.',
+  );
 }
 
 Certificate? _tryGetCertificate(Credential credential) {

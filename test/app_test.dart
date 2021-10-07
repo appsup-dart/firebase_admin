@@ -1,10 +1,9 @@
-
-
 import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:firebase_admin/src/auth/credential.dart';
 import 'package:firebase_admin/src/credential.dart';
+import 'package:firebase_admin/src/testing.dart';
 import 'package:test/test.dart';
 
 import 'package:firebase_admin/firebase_admin.dart';
@@ -332,8 +331,6 @@ void main() {
       setUpAll(() {});
 
       tearDownAll(() {});
-
-
 
       test(
           'returns a valid token given a well-formed custom credential implementation',

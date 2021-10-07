@@ -1,10 +1,39 @@
+import 'dart:async';
+
 import 'package:firebase_admin/src/service.dart';
 
 import '../firebase_admin.dart';
+import 'app/app.dart';
 import 'app/app_extension.dart';
 import 'app.dart';
 
 import 'package:firebase_dart/standalone_database.dart';
+
+class _AuthTokenProvider implements AuthTokenProvider {
+  final FirebaseAppInternals internals;
+
+  _AuthTokenProvider(this.internals);
+
+  @override
+  Future<String?> getToken([bool forceRefresh = false]) async {
+    print('getToken');
+    print((await internals.getToken(forceRefresh)).accessToken);
+    return (await internals.getToken(forceRefresh)).accessToken;
+  }
+
+  @override
+  Stream<String?> get onTokenChanged {
+    var controller = StreamController<String?>();
+    var listener = (v) => controller.add(v);
+
+    controller.onListen = () {
+      internals.addAuthTokenListener(listener);
+    };
+    controller.onCancel = () => internals.removeAuthTokenListener(listener);
+
+    return controller.stream;
+  }
+}
 
 /// Firebase Realtime Database service.
 class Database implements FirebaseService {
@@ -15,13 +44,10 @@ class Database implements FirebaseService {
 
   /// Do not call this constructor directly. Instead, use app().database.
   Database(this.app)
-      : _database = StandaloneFirebaseDatabase(app.options.databaseUrl ??
-            'https://${app.projectId}.firebaseio.com/') {
-    _database.authenticate(app.internals.getToken().then((v) => v.accessToken));
-
-    app.internals
-        .addAuthTokenListener((token) => _database.authenticate(token));
-  }
+      : _database = StandaloneFirebaseDatabase(
+            app.options.databaseUrl ??
+                'https://${app.projectId}.firebaseio.com/',
+            authTokenProvider: _AuthTokenProvider(app.internals));
 
   /// Returns a [Reference] representing the location in the Database
   /// corresponding to the provided [path]. If no path is provided, the

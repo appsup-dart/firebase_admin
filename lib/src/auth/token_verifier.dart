@@ -10,22 +10,14 @@ import '../utils/validator.dart' as validator;
 /// This verifies ID tokens and session cookies.
 class FirebaseTokenVerifier {
   final App app;
-  final String? projectId;
+  final String projectId;
 
-  final String _verifyApiName = 'verifyIdToken()';
   final String _jwtName = 'ID token';
 
   static FirebaseTokenVerifier Function(App app) factory =
       (app) => FirebaseTokenVerifier(app);
 
-  FirebaseTokenVerifier(this.app) : projectId = app.projectId {
-    if (projectId == null) {
-      throw FirebaseAuthError.invalidCredential(
-        'Must initialize app with a cert credential or set your Firebase project ID as the '
-        'GOOGLE_CLOUD_PROJECT environment variable to call $_verifyApiName.',
-      );
-    }
-  }
+  FirebaseTokenVerifier(this.app) : projectId = app.projectId;
 
   /// Verifies the format and signature of a Firebase Auth JWT token.
   Future<IdToken> verifyJwt(String jwtToken) async {
@@ -48,7 +40,7 @@ class FirebaseTokenVerifier {
 
   @visibleForTesting
   Future<Client> getOpenIdClient() async {
-    var issuer = await Issuer.discover(Issuer.firebase(projectId!));
+    var issuer = await Issuer.discover(Issuer.firebase(projectId));
     return Client(issuer, projectId);
   }
 }

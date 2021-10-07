@@ -87,6 +87,16 @@ class AuthRequestHandler {
     });
   }
 
+  /// Looks up users by their uids.
+  Future<Map<String, dynamic>> getAccountInfoByUids(List<String> uids) async {
+    if (uids.any((uid) => !validator.isUid(uid))) {
+      throw FirebaseAuthError.invalidUid();
+    }
+    return _getAccountInfo({
+      'localId': uids,
+    });
+  }
+
   /// Looks up a user by email.
   Future<Map<String, dynamic>> getAccountInfoByEmail(String email) async {
     if (!validator.isEmail(email)) {
@@ -473,8 +483,10 @@ class CreateEditAccountRequest {
         // deleteProvider: ['phone'] with an array of providerIds (phone in this case),
         // will be passed.
         // Currently this applies to phone provider only.
-        if (phoneNumber == '') 'deleteProvider': ['phone'],
-        if (customAttributes != null) 'customAttributes': customAttributes,
+        if (phoneNumber == '')
+          'deleteProvider': ['phone'],
+        if (customAttributes != null)
+          'customAttributes': customAttributes,
         if (validSince != null)
           'validSince': validSince!.millisecondsSinceEpoch ~/ 1000
       };

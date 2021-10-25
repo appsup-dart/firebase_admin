@@ -16,15 +16,13 @@ class _AuthTokenProvider implements AuthTokenProvider {
 
   @override
   Future<String?> getToken([bool forceRefresh = false]) async {
-    print('getToken');
-    print((await internals.getToken(forceRefresh)).accessToken);
     return (await internals.getToken(forceRefresh)).accessToken;
   }
 
   @override
-  Stream<String?> get onTokenChanged {
-    var controller = StreamController<String?>();
-    var listener = (v) => controller.add(v);
+  Stream<Future<String>?> get onTokenChanged {
+    var controller = StreamController<Future<String>?>();
+    var listener = (v) => controller.add(Future.value(v));
 
     controller.onListen = () {
       internals.addAuthTokenListener(listener);

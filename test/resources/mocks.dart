@@ -1,7 +1,6 @@
 import 'package:firebase_admin/src/auth/credential.dart';
 import 'package:firebase_admin/src/testing.dart';
 import 'package:firebase_admin/testing.dart';
-import 'package:firebase_admin/src/app.dart';
 
 var projectId = 'project_id';
 

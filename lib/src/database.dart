@@ -15,8 +15,6 @@ class _AuthTokenProvider implements AuthTokenProvider {
 
   @override
   Future<String?> getToken([bool forceRefresh = false]) async {
-    print('getToken');
-    print((await internals.getToken(forceRefresh)).accessToken);
     return (await internals.getToken(forceRefresh)).accessToken;
   }
 

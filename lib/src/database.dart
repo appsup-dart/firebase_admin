@@ -43,7 +43,7 @@ class Database implements FirebaseService {
   Database(this.app)
       : _database = StandaloneFirebaseDatabase(
             app.options.databaseUrl ??
-                'https://${app.projectId}.firebaseio.com/',
+                'https://${app.projectId}-default-rtdb.firebaseio.com/',
             authTokenProvider: _AuthTokenProvider(app.internals));
 
   /// Returns a [Reference] representing the location in the Database

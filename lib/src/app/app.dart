@@ -55,9 +55,9 @@ class FirebaseAppInternals {
             hasAccessTokenChanged ||
             hasExpirationChanged) {
           _cachedToken = token;
-          _tokenListeners.forEach((listener) {
+          for (var listener in _tokenListeners) {
             listener(token.accessToken);
-          });
+          }
         }
 
         var expiresIn = token.expirationTime.difference(clock.now());

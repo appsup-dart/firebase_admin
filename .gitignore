@@ -11,3 +11,6 @@ build/
 doc/api/
 
 *.iml
+
+# macOS
+.DS_Store

@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:convert';
 
 /// Base class for all Firebase exceptions.
@@ -69,7 +71,7 @@ class FirebaseAuthError extends _PrefixedFirebaseError {
     // serverErrorCode could contain additional details:
     // ERROR_CODE : Detailed message which can also contain colons
     final colonSeparator = serverErrorCode.indexOf(':');
-    var customMessage;
+    String? customMessage;
     if (colonSeparator != -1) {
       customMessage = serverErrorCode.substring(colonSeparator + 1).trim();
       serverErrorCode = serverErrorCode.substring(0, colonSeparator).trim();

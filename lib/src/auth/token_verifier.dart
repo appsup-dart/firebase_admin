@@ -14,6 +14,7 @@ class FirebaseTokenVerifier {
 
   final String _jwtName = 'ID token';
 
+  // ignore: prefer_function_declarations_over_variables
   static FirebaseTokenVerifier Function(App app) factory =
       (app) => FirebaseTokenVerifier(app);
 

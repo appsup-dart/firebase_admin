@@ -67,6 +67,7 @@ class ApiClient {
 class AuthRequestHandler {
   final ApiClient apiClient;
 
+  // ignore: prefer_function_declarations_over_variables
   static AuthRequestHandler Function(App app) factory =
       (app) => AuthRequestHandler._(app);
 

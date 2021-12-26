@@ -1,7 +1,5 @@
 /// Validates that a string is a valid email.
 
-
-
 bool isEmail(String? email) {
   if (email == null) return false;
   // There must at least one character before the @ symbol and another after.

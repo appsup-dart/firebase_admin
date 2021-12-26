@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:firebase_admin/src/auth/credential.dart';
 
 import '../../firebase_admin.dart';
-import '../credential.dart';
 
 extension GetProjectIdExtension on App {
   String get projectId => _getProjectId(this);

@@ -1,5 +1,4 @@
 import 'package:firebase_admin/firebase_admin.dart';
-import 'package:firebase_admin/src/credential.dart';
 
 void main() async {
   // applicationDefault() will look for credentials in the following locations:

@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_import
+
 import 'dart:io';
 
 import 'package:clock/clock.dart';
@@ -13,7 +15,6 @@ import 'resources/mocks.dart' as mocks;
 import 'package:fake_async/fake_async.dart';
 import 'package:dotenv/dotenv.dart';
 
-import 'resources/mocks.dart';
 import 'package:firebase_admin/src/app.dart';
 
 Matcher throwsAppError([String? message]) =>
@@ -586,7 +587,7 @@ void main() {
 
     group('App.internals.addAuthTokenListener()', () {
       test('is notified when the token changes', () async {
-        var calledWithValue;
+        String? calledWithValue;
         mockApp.internals.addAuthTokenListener(expectAsync1((v) {
           calledWithValue = v;
         }, count: 1));

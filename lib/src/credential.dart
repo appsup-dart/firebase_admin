@@ -97,13 +97,16 @@ class Credentials {
   static String? get _gcloudCredentialPath {
     var config = _configDir;
     if (config == null) return null;
-    return path.join(config, 'gcloud/application_default_credentials.json');
+    return path.join(config, 'gcloud', 'application_default_credentials.json');
   }
 
   static String? get _firebaseConfigPath {
-    var config = _configDir;
+    var config = Platform.isWindows
+        // Config dir is different on Windows for firebase config
+        ? path.join(env['USERPROFILE']!, '.config')
+        : _configDir;
     if (config == null) return null;
-    return path.join(config, 'configstore/firebase-tools.json');
+    return path.join(config, 'configstore', 'firebase-tools.json');
   }
 
   /// The path where credentials obtained by doing [Credentials.login] are
@@ -116,7 +119,7 @@ class Credentials {
     var config = _configDir;
     if (config == null) return null;
     return path.join(
-        config, 'firebase_admin/application_default_credentials.json');
+        config, 'firebase_admin', 'application_default_credentials.json');
   }
 
   static String? get _configDir {

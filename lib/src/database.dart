@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:firebase_admin/src/service.dart';
 
-import '../firebase_admin.dart';
 import 'app/app.dart';
 import 'app/app_extension.dart';
 import 'app.dart';
@@ -16,22 +15,20 @@ class _AuthTokenProvider implements AuthTokenProvider {
 
   @override
   Future<String?> getToken([bool forceRefresh = false]) async {
-    print('getToken');
-    print((await internals.getToken(forceRefresh)).accessToken);
     return (await internals.getToken(forceRefresh)).accessToken;
   }
 
   @override
-  Stream<String?> get onTokenChanged {
+  Stream<Future<String>?> get onTokenChanged {
     var controller = StreamController<String?>();
-    var listener = (v) => controller.add(v);
+    listener(v) => controller.add(v);
 
     controller.onListen = () {
       internals.addAuthTokenListener(listener);
     };
     controller.onCancel = () => internals.removeAuthTokenListener(listener);
 
-    return controller.stream;
+    return controller.stream.map((e) => Future.value(e));
   }
 }
 
@@ -46,7 +43,7 @@ class Database implements FirebaseService {
   Database(this.app)
       : _database = StandaloneFirebaseDatabase(
             app.options.databaseUrl ??
-                'https://${app.projectId}.firebaseio.com/',
+                'https://${app.projectId}-default-rtdb.firebaseio.com/',
             authTokenProvider: _AuthTokenProvider(app.internals));
 
   /// Returns a [Reference] representing the location in the Database

@@ -1,9 +1,8 @@
 import 'package:firebase_admin/firebase_admin.dart';
+import 'package:firebase_admin/src/service.dart';
 import 'package:firebase_admin/src/utils/api_request.dart';
 import 'package:gcloud/storage.dart' as gcloud;
 
-import 'package:firebase_admin/src/app.dart';
-import 'package:firebase_admin/src/service.dart';
 import 'app/app_extension.dart';
 
 /// Storage service bound to the provided app.

@@ -1,20 +1,17 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
+import 'package:dotenv/dotenv.dart';
+import 'package:fake_async/fake_async.dart';
+import 'package:firebase_admin/firebase_admin.dart';
+import 'package:firebase_admin/src/app.dart';
 import 'package:firebase_admin/src/auth/credential.dart';
-import 'package:firebase_admin/src/credential.dart';
+import 'package:firebase_admin/src/service.dart';
 import 'package:firebase_admin/src/testing.dart';
 import 'package:test/test.dart';
 
-import 'package:firebase_admin/firebase_admin.dart';
-import 'package:firebase_admin/src/service.dart';
-import 'dart:async';
 import 'resources/mocks.dart' as mocks;
-import 'package:fake_async/fake_async.dart';
-import 'package:dotenv/dotenv.dart';
-
-import 'resources/mocks.dart';
-import 'package:firebase_admin/src/app.dart';
 
 Matcher throwsAppError([String? message]) =>
     throwsA(TypeMatcher<FirebaseAppError>()
@@ -586,7 +583,7 @@ void main() {
 
     group('App.internals.addAuthTokenListener()', () {
       test('is notified when the token changes', () async {
-        var calledWithValue;
+        String? calledWithValue;
         mockApp.internals.addAuthTokenListener(expectAsync1((v) {
           calledWithValue = v;
         }, count: 1));

@@ -3,9 +3,7 @@ import 'package:firebase_admin/src/auth/token_generator.dart';
 import 'package:firebase_admin/src/auth/token_verifier.dart';
 import 'package:openid_client/openid_client.dart';
 
-import 'app.dart';
 import 'auth/auth_api_request.dart';
-import 'auth/user_record.dart';
 import 'service.dart';
 
 export 'auth/user_record.dart';

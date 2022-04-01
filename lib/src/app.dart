@@ -5,10 +5,7 @@ import 'package:firebase_admin/src/storage.dart';
 import '../firebase_admin.dart';
 import 'app/app.dart';
 import 'database.dart';
-import 'utils/error.dart';
 import 'service.dart';
-import 'auth.dart';
-import 'credential.dart';
 
 /// Represents initialized Firebase application and provides access to the
 /// app's services.

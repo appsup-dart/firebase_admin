@@ -1,13 +1,11 @@
 import 'dart:async';
 
 import 'package:firebase_admin/src/service.dart';
+import 'package:firebase_dart/standalone_database.dart';
 
-import '../firebase_admin.dart';
+import 'app.dart';
 import 'app/app.dart';
 import 'app/app_extension.dart';
-import 'app.dart';
-
-import 'package:firebase_dart/standalone_database.dart';
 
 class _AuthTokenProvider implements AuthTokenProvider {
   final FirebaseAppInternals internals;
@@ -22,13 +20,11 @@ class _AuthTokenProvider implements AuthTokenProvider {
   }
 
   @override
-  Stream<String?> get onTokenChanged {
-    var controller = StreamController<String?>();
-    var listener = (v) => controller.add(v);
+  Stream<Future<String>?> get onTokenChanged {
+    var controller = StreamController<Future<String>?>();
+    listener(String v) => controller.add(Future.value(v));
 
-    controller.onListen = () {
-      internals.addAuthTokenListener(listener);
-    };
+    controller.onListen = () => internals.addAuthTokenListener(listener);
     controller.onCancel = () => internals.removeAuthTokenListener(listener);
 
     return controller.stream;

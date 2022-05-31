@@ -15,14 +15,14 @@ class UserMetadata {
                 ? null
                 : DateTime.fromMillisecondsSinceEpoch(
                     int.parse(map['createdAt'])),
-            lastSignInTime: map['lastSignInTime'] == null
+            lastSignInTime: map['lastLoginAt'] == null
                 ? null
                 : DateTime.fromMillisecondsSinceEpoch(
-                    int.parse(map['lastSignInTime'])));
+                    int.parse(map['lastLoginAt'])));
 
   Map<String, dynamic> toJson() {
     return {
-      'lastSignInTime': lastSignInTime?.toIso8601String(),
+      'lastLoginAt': lastSignInTime?.toIso8601String(),
       'creationTime': creationTime?.toIso8601String(),
     };
   }

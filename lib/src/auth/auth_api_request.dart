@@ -1,18 +1,16 @@
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-
-import '../auth.dart';
-import '../app/app_extension.dart';
-import '../utils/api_request.dart';
-import '../utils/error.dart';
-
-import '../app.dart';
-import 'action_code_settings.dart';
-import '../utils/validator.dart' as validator;
+import 'package:collection/collection.dart';
 import 'package:http/http.dart';
 
-import 'package:collection/collection.dart';
+import '../app.dart';
+import '../app/app_extension.dart';
+import '../auth.dart';
+import '../utils/api_request.dart';
+import '../utils/error.dart';
+import '../utils/validator.dart' as validator;
+import 'action_code_settings.dart';
 
 class ApiClient {
   final Client httpClient;
@@ -67,6 +65,7 @@ class ApiClient {
 class AuthRequestHandler {
   final ApiClient apiClient;
 
+  // ignore: prefer_function_declarations_over_variables
   static AuthRequestHandler Function(App app) factory =
       (app) => AuthRequestHandler._(app);
 
@@ -84,6 +83,16 @@ class AuthRequestHandler {
     }
     return _getAccountInfo({
       'localId': [uid],
+    });
+  }
+
+  /// Looks up users by their uids.
+  Future<Map<String, dynamic>> getAccountInfoByUids(List<String> uids) async {
+    if (uids.any((uid) => !validator.isUid(uid))) {
+      throw FirebaseAuthError.invalidUid();
+    }
+    return _getAccountInfo({
+      'localId': uids,
     });
   }
 
@@ -474,6 +483,7 @@ class CreateEditAccountRequest {
         // will be passed.
         // Currently this applies to phone provider only.
         if (phoneNumber == '') 'deleteProvider': ['phone'],
+        if (customAttributes != null) 'customAttributes': customAttributes,
         if (validSince != null)
           'validSince': validSince!.millisecondsSinceEpoch ~/ 1000
       };

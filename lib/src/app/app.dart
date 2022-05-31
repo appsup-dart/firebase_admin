@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:firebase_admin/src/utils/error.dart';
 
 import '../credential.dart';
-import 'package:clock/clock.dart';
 
 class FirebaseAppInternals {
   final Credential credential;
@@ -55,9 +55,9 @@ class FirebaseAppInternals {
             hasAccessTokenChanged ||
             hasExpirationChanged) {
           _cachedToken = token;
-          _tokenListeners.forEach((listener) {
+          for (var listener in _tokenListeners) {
             listener(token.accessToken);
-          });
+          }
         }
 
         var expiresIn = token.expirationTime.difference(clock.now());

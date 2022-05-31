@@ -3,10 +3,10 @@ import 'package:firebase_admin/src/auth/token_generator.dart';
 import 'package:firebase_admin/src/auth/token_verifier.dart';
 import 'package:openid_client/openid_client.dart';
 
-import 'app.dart';
 import 'auth/auth_api_request.dart';
-import 'auth/user_record.dart';
 import 'service.dart';
+
+export 'auth/user_record.dart';
 
 /// The Firebase Auth service interface.
 class Auth implements FirebaseService {
@@ -33,6 +33,15 @@ class Auth implements FirebaseService {
     var response = await _authRequestHandler.getAccountInfoByUid(uid);
     // Returns the user record populated with server response.
     return UserRecord.fromJson(response['users'][0]);
+  }
+
+  /// Gets the user data for the users corresponding to the given [uids].
+  Future<List<UserRecord>> getUsers(List<String> uids) async {
+    var response = await _authRequestHandler.getAccountInfoByUids(uids);
+    // Returns the user record populated with server response.
+    return (response['users'] as List)
+        .map((u) => UserRecord.fromJson(u))
+        .toList();
   }
 
   /// Looks up the user identified by the provided email and returns a future

@@ -1,8 +1,8 @@
+import 'package:meta/meta.dart';
 import 'package:openid_client/openid_client.dart';
 
 import '../../firebase_admin.dart';
 import '../app/app_extension.dart';
-import 'package:meta/meta.dart';
 import '../utils/validator.dart' as validator;
 
 /// Class for verifying general purpose Firebase JWTs.
@@ -14,6 +14,7 @@ class FirebaseTokenVerifier {
 
   final String _jwtName = 'ID token';
 
+  // ignore: prefer_function_declarations_over_variables
   static FirebaseTokenVerifier Function(App app) factory =
       (app) => FirebaseTokenVerifier(app);
 

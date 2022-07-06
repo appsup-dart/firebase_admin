@@ -11,6 +11,7 @@ import 'package:openid_client/openid_client.dart' hide Credential;
 class ServiceAccountMockCredential extends ServiceAccountCredential
     with MockCredentialMixin {
   @override
+  // ignore: prefer_function_declarations_over_variables
   late final AccessToken Function() tokenFactory = () {
     return MockAccessToken.fromJson({
       'access_token': (JsonWebSignatureBuilder()

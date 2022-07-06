@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dotenv/dotenv.dart';
+import 'package:firebase_admin/src/utils/env.dart';
 import 'package:openid_client/openid_client_io.dart';
 
 import 'auth/credential.dart';
@@ -126,7 +126,7 @@ class Credentials {
     }
 
     // On *nix the gcloud cli creates a . dir.
-    if (env.containsKey('HOME')) {
+    if (env.isDefined('HOME')) {
       return path.join(env['HOME']!, '.config');
     }
     return null;

@@ -10,9 +10,9 @@ dependencies:
   clock: ^1.1.0
   x509: ^0.2.2
   jose: ^0.3.2
-  dotenv: ^3.0.0
+  dotenv: ^4.0.0
   openid_client: ^0.4.3
-  firebase_dart: ^1.0.0
+  firebase_dart: ^1.0.10
   path: ^1.8.0
   meta: ^1.4.0
   http: ^0.13.0

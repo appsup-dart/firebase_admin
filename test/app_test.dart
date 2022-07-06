@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:firebase_admin/src/auth/credential.dart';
-import 'package:firebase_admin/src/credential.dart';
 import 'package:firebase_admin/src/testing.dart';
 import 'package:firebase_admin/src/utils/env.dart';
 import 'package:test/test.dart';
@@ -13,7 +12,6 @@ import 'dart:async';
 import 'resources/mocks.dart' as mocks;
 import 'package:fake_async/fake_async.dart';
 
-import 'resources/mocks.dart';
 import 'package:firebase_admin/src/app.dart';
 
 Matcher throwsAppError([String? message]) =>
@@ -80,7 +78,7 @@ void main() {
       });
 
       test('should respect leading and trailing whitespace', () {
-        var newMockAppName = '  ' + mocks.appName + '  ';
+        var newMockAppName = '  ${mocks.appName}  ';
         mockApp = admin.initializeApp(mocks.appOptions, newMockAppName);
         expect(mockApp.name, isNot(mocks.appName));
         expect(mockApp.name, newMockAppName);
@@ -586,7 +584,7 @@ void main() {
 
     group('App.internals.addAuthTokenListener()', () {
       test('is notified when the token changes', () async {
-        var calledWithValue;
+        String? calledWithValue;
         mockApp.internals.addAuthTokenListener(expectAsync1((v) {
           calledWithValue = v;
         }, count: 1));

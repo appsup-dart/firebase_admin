@@ -5,7 +5,6 @@ import 'package:x509/x509.dart';
 import '../utils/error.dart';
 import 'package:http/http.dart' as http;
 import 'package:jose/jose.dart';
-import 'package:crypto_keys/crypto_keys.dart';
 import '../credential.dart';
 import 'package:clock/clock.dart';
 import 'package:openid_client/openid_client.dart' as openid;

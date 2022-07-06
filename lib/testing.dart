@@ -30,7 +30,7 @@ extension FirebaseAdminTestingX on FirebaseAdmin {
     final claims = {
       'aud': projectId,
       'exp': clock.now().add(Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000,
-      'iss': 'https://securetoken.google.com/' + projectId,
+      'iss': 'https://securetoken.google.com/$projectId',
       'sub': uid,
       'auth_time': clock.now().millisecondsSinceEpoch ~/ 1000,
       ...overrides,

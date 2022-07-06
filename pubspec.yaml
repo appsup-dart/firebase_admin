@@ -23,5 +23,5 @@ dependencies:
 dev_dependencies:
   test: ^1.17.8
   fake_async: ^1.2.0
-  pedantic: ^1.11.1
+  lints: ^2.0.0
   mockito: ^5.0.10

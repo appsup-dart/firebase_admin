@@ -7,7 +7,7 @@ class AuthorizedHttpClient extends BaseClient {
 
   final Duration timeout;
 
-  final Client client = Client();
+  final Client client = httpClientFactory();
 
   AuthorizedHttpClient(this.app, this.timeout);
 
@@ -19,4 +19,6 @@ class AuthorizedHttpClient extends BaseClient {
 
     return client.send(request).timeout(timeout);
   }
+
+  static Client Function() httpClientFactory = () => Client();
 }

@@ -72,7 +72,7 @@ class AuthRequestHandler {
       throw FirebaseAuthError.userNotFound();
     }
 
-    return UserRecord.fromJson(response.users!.first.toJson());
+    return UserRecord.fromJson(json.decode(json.encode(response.users!.first)));
   }
 
   /// Exports the users (single batch only) with a size of maxResults and
@@ -112,6 +112,7 @@ class AuthRequestHandler {
     String? phoneNumber,
     String? photoUrl,
     String? uid,
+    List<CreateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
   }) async {
     _validateAccountParameters(
       uid: uid,
@@ -133,7 +134,14 @@ class AuthRequestHandler {
           ..password = password
           ..phoneNumber = phoneNumber
           ..photoUrl = photoUrl
-          ..localId = uid,
+          ..localId = uid
+          ..mfaInfo = multiFactorEnrolledFactors
+              ?.map((v) => GoogleCloudIdentitytoolkitV1MfaFactor(
+                  displayName: v.displayName,
+                  phoneInfo: v is CreatePhoneMultiFactorInfoRequest
+                      ? v.phoneNumber
+                      : null))
+              .toList(),
         projectId);
 
     // If the localId is not returned, then the request failed.
@@ -166,6 +174,7 @@ class AuthRequestHandler {
     String? password,
     String? phoneNumber,
     String? photoUrl,
+    List<UpdateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
   }) async {
     _validateAccountParameters(
       uid: uid,
@@ -186,7 +195,19 @@ class AuthRequestHandler {
         emailVerified: emailVerified,
         password: password,
         phoneNumber: phoneNumber,
-        photoUrl: photoUrl));
+        photoUrl: photoUrl,
+        mfa: multiFactorEnrolledFactors == null
+            ? null
+            : GoogleCloudIdentitytoolkitV1MfaInfo(
+                enrollments: multiFactorEnrolledFactors
+                    .map((v) => GoogleCloudIdentitytoolkitV1MfaEnrollment(
+                        displayName: v.displayName,
+                        enrolledAt: v.enrollmentTime?.toUtc().toIso8601String(),
+                        mfaEnrollmentId: v.uid,
+                        phoneInfo: v is UpdatePhoneMultiFactorInfoRequest
+                            ? v.phoneNumber
+                            : null))
+                    .toList())));
   }
 
   void _validateAccountParameters({

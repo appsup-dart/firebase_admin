@@ -4,8 +4,9 @@ import 'package:firebase_admin/src/auth/token_verifier.dart';
 import 'package:openid_client/openid_client.dart';
 
 import 'auth/auth_api_request.dart';
-import 'auth/user_record.dart';
 import 'service.dart';
+
+export 'auth/user_record.dart';
 
 /// The Firebase Auth service interface.
 class Auth implements FirebaseService {
@@ -63,19 +64,22 @@ class Auth implements FirebaseService {
     bool? emailVerified,
     String? password,
     String? phoneNumber,
-    String? photoUrl,
+    Uri? photoUrl,
     String? uid,
+    List<CreateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
   }) async {
     try {
       uid = await _authRequestHandler.createNewAccount(
-          disabled: disabled,
-          displayName: displayName,
-          email: email,
-          emailVerified: emailVerified,
-          password: password,
-          phoneNumber: phoneNumber,
-          photoUrl: photoUrl,
-          uid: uid);
+        disabled: disabled,
+        displayName: displayName,
+        email: email,
+        emailVerified: emailVerified,
+        password: password,
+        phoneNumber: phoneNumber,
+        photoUrl: photoUrl?.toString(),
+        uid: uid,
+        multiFactorEnrolledFactors: multiFactorEnrolledFactors,
+      );
       // Return the corresponding user record.
       return await getUser(uid);
     } on FirebaseException catch (error) {
@@ -106,7 +110,8 @@ class Auth implements FirebaseService {
     bool? emailVerified,
     String? password,
     String? phoneNumber,
-    String? photoUrl,
+    Uri? photoUrl,
+    List<UpdateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
   }) async {
     uid = await _authRequestHandler.updateExistingAccount(
       uid,
@@ -116,7 +121,8 @@ class Auth implements FirebaseService {
       emailVerified: emailVerified,
       password: password,
       phoneNumber: phoneNumber,
-      photoUrl: photoUrl,
+      photoUrl: photoUrl?.toString(),
+      multiFactorEnrolledFactors: multiFactorEnrolledFactors,
     );
     // Return the corresponding user record.
     return await getUser(uid);
@@ -285,4 +291,84 @@ class ListUsersResult {
                 .map((v) => UserRecord.fromJson(v))
                 .toList(),
             pageToken: map['nextPageToken']);
+}
+
+/// Represents properties of a user-enrolled second factor for a
+/// [Auth.createUser] call.
+abstract class CreateMultiFactorInfoRequest {
+  /// The optional display name for an enrolled second factor.
+  final String? displayName;
+
+  /// The type identifier of the second factor.
+  ///
+  /// For SMS second factors, this is phone.
+  final String factorId;
+
+  CreateMultiFactorInfoRequest({this.displayName, required this.factorId});
+
+  factory CreateMultiFactorInfoRequest.phone(
+      {String? displayName,
+      required String phoneNumber}) = CreatePhoneMultiFactorInfoRequest;
+}
+
+/// Represents a phone specific user-enrolled second factor for a
+/// [Auth.createUser] call.
+class CreatePhoneMultiFactorInfoRequest extends CreateMultiFactorInfoRequest {
+  /// The phone number associated with a phone second factor.
+  final String phoneNumber;
+
+  CreatePhoneMultiFactorInfoRequest(
+      {String? displayName, required this.phoneNumber})
+      : super(factorId: 'phone', displayName: displayName);
+}
+
+/// Represents the properties of a user-enrolled second factor for a
+/// [Auth.updateUser] call.
+abstract class UpdateMultiFactorInfoRequest {
+  /// The optional display name for an enrolled second factor.
+  final String? displayName;
+
+  /// The type identifier of the second factor.
+  ///
+  /// For SMS second factors, this is phone.
+  final String factorId;
+
+  /// The optional date the second factor was enrolled.
+  final DateTime? enrollmentTime;
+
+  /// The ID of the enrolled second factor.
+  ///
+  /// This ID is unique to the user. When not provided, a new one is provisioned
+  /// by the Auth server.
+  final String? uid;
+
+  UpdateMultiFactorInfoRequest(
+      {this.displayName,
+      required this.factorId,
+      this.enrollmentTime,
+      this.uid});
+
+  factory UpdateMultiFactorInfoRequest.phone(
+      {String? displayName,
+      required String phoneNumber,
+      DateTime? enrollmentTime,
+      String? uid}) = UpdatePhoneMultiFactorInfoRequest;
+}
+
+/// Represents a phone specific user-enrolled second factor for a
+/// [Auth.updateUser] call.
+class UpdatePhoneMultiFactorInfoRequest extends UpdateMultiFactorInfoRequest {
+  /// The phone number associated with a phone second factor.
+  final String phoneNumber;
+
+  UpdatePhoneMultiFactorInfoRequest(
+      {String? displayName,
+      required this.phoneNumber,
+      DateTime? enrollmentTime,
+      String? uid})
+      : super(
+            factorId: 'phone',
+            displayName: displayName,
+            enrollmentTime: enrollmentTime,
+            uid: uid);
 }

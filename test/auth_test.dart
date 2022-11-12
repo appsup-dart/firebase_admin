@@ -27,18 +27,18 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
   @override
   Future<UserRecord> getAccountInfoByUid(String uid) =>
       super.noSuchMethod(Invocation.method(#getAccountInfoByUid, [uid]),
-          returnValue: Future.value(UserRecord(uid: '')));
+          returnValue: Future.value(UserRecord.fromJson({})));
 
   @override
   Future<UserRecord> getAccountInfoByEmail(String email) =>
       super.noSuchMethod(Invocation.method(#getAccountInfoByEmail, [email]),
-          returnValue: Future.value(UserRecord(uid: '')));
+          returnValue: Future.value(UserRecord.fromJson({})));
 
   @override
   Future<UserRecord> getAccountInfoByPhoneNumber(String phoneNumber) =>
       super.noSuchMethod(
           Invocation.method(#getAccountInfoByPhoneNumber, [phoneNumber]),
-          returnValue: Future.value(UserRecord(uid: '')));
+          returnValue: Future.value(UserRecord.fromJson({})));
 
   @override
   Future<ListUsersResult> downloadAccount(int? maxResults, String? pageToken) =>
@@ -56,6 +56,7 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
     String? phoneNumber,
     String? photoUrl,
     String? uid,
+    List<CreateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
   }) =>
       super.noSuchMethod(
           Invocation.method(#createNewAccount, [], {
@@ -67,6 +68,7 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
             #phoneNumber: phoneNumber,
             #photoUrl: photoUrl,
             #uid: uid,
+            #multiFactorEnrolledFactors: multiFactorEnrolledFactors,
           }),
           returnValue: Future.value(''));
 
@@ -85,6 +87,7 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
     String? password,
     String? phoneNumber,
     String? photoUrl,
+    List<UpdateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
   }) =>
       super.noSuchMethod(
           Invocation.method(#updateExistingAccount, [
@@ -97,6 +100,7 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
             #password: password,
             #phoneNumber: phoneNumber,
             #photoUrl: photoUrl,
+            #multiFactorEnrolledFactors: multiFactorEnrolledFactors,
           }),
           returnValue: Future.value(''));
 
@@ -350,9 +354,9 @@ void main() {
       const maxResult = 500;
       final downloadAccountResponse = ListUsersResult(
         users: [
-          UserRecord(uid: 'UID1'),
-          UserRecord(uid: 'UID2'),
-          UserRecord(uid: 'UID3'),
+          UserRecord.fromJson({'localId': 'UID1'}),
+          UserRecord.fromJson({'localId': 'UID2'}),
+          UserRecord.fromJson({'localId': 'UID3'}),
         ],
         pageToken: 'NEXT_PAGE_TOKEN',
       );
@@ -438,7 +442,7 @@ void main() {
       PostExpectation<Future<String>> whenCreateNewAccount() =>
           when(mockRequestHandler.createNewAccount(
             displayName: expectedUserRecord.displayName,
-            photoUrl: expectedUserRecord.photoUrl,
+            photoUrl: expectedUserRecord.photoUrl?.toString(),
             email: expectedUserRecord.email,
             emailVerified: expectedUserRecord.emailVerified,
             password: 'password',
@@ -556,7 +560,7 @@ void main() {
           when(mockRequestHandler.updateExistingAccount(
             uid,
             displayName: expectedUserRecord.displayName,
-            photoUrl: expectedUserRecord.photoUrl,
+            photoUrl: expectedUserRecord.photoUrl?.toString(),
             email: expectedUserRecord.email,
             emailVerified: expectedUserRecord.emailVerified,
             password: 'password',

@@ -142,7 +142,7 @@ class UserRecord {
   */
 
   Map<String, dynamic> toJson() => {
-        'uid': uid,
+        'localId': uid,
         'email': email,
         'emailVerified': emailVerified,
         'displayName': displayName,

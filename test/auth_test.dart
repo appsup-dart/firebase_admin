@@ -25,44 +25,79 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
           returnValue: Future.value(''));
 
   @override
-  Future<Map<String, dynamic>> getAccountInfoByUid(String uid) =>
+  Future<UserRecord> getAccountInfoByUid(String uid) =>
       super.noSuchMethod(Invocation.method(#getAccountInfoByUid, [uid]),
-          returnValue: Future.value(<String, dynamic>{}));
+          returnValue: Future.value(UserRecord(uid: '')));
 
   @override
-  Future<Map<String, dynamic>> getAccountInfoByEmail(String email) =>
+  Future<UserRecord> getAccountInfoByEmail(String email) =>
       super.noSuchMethod(Invocation.method(#getAccountInfoByEmail, [email]),
-          returnValue: Future.value(<String, dynamic>{}));
+          returnValue: Future.value(UserRecord(uid: '')));
 
   @override
-  Future<Map<String, dynamic>> getAccountInfoByPhoneNumber(
-          String phoneNumber) =>
+  Future<UserRecord> getAccountInfoByPhoneNumber(String phoneNumber) =>
       super.noSuchMethod(
           Invocation.method(#getAccountInfoByPhoneNumber, [phoneNumber]),
-          returnValue: Future.value(<String, dynamic>{}));
+          returnValue: Future.value(UserRecord(uid: '')));
 
   @override
-  Future<Map<String, dynamic>> downloadAccount(
-          int? maxResults, String? pageToken) =>
+  Future<ListUsersResult> downloadAccount(int? maxResults, String? pageToken) =>
       super.noSuchMethod(
           Invocation.method(#downloadAccount, [maxResults, pageToken]),
-          returnValue: Future.value(<String, dynamic>{}));
+          returnValue: Future.value(ListUsersResult(users: [])));
 
   @override
-  Future<String> createNewAccount(CreateEditAccountRequest request) =>
-      super.noSuchMethod(Invocation.method(#createNewAccount, [request]),
+  Future<String> createNewAccount({
+    bool? disabled,
+    String? displayName,
+    String? email,
+    bool? emailVerified,
+    String? password,
+    String? phoneNumber,
+    String? photoUrl,
+    String? uid,
+  }) =>
+      super.noSuchMethod(
+          Invocation.method(#createNewAccount, [], {
+            #disabled: disabled,
+            #displayName: displayName,
+            #email: email,
+            #emailVerified: emailVerified,
+            #password: password,
+            #phoneNumber: phoneNumber,
+            #photoUrl: photoUrl,
+            #uid: uid,
+          }),
           returnValue: Future.value(''));
 
   @override
-  Future<Map<String, dynamic>> deleteAccount(String uid) =>
+  Future<void> deleteAccount(String uid) =>
       super.noSuchMethod(Invocation.method(#deleteAccount, [uid]),
-          returnValue: Future.value(<String, dynamic>{}));
+          returnValue: Future.value());
 
   @override
   Future<String> updateExistingAccount(
-          String uid, CreateEditAccountRequest request) =>
+    String uid, {
+    bool? disableUser,
+    String? displayName,
+    String? email,
+    bool? emailVerified,
+    String? password,
+    String? phoneNumber,
+    String? photoUrl,
+  }) =>
       super.noSuchMethod(
-          Invocation.method(#updateExistingAccount, [uid, request]),
+          Invocation.method(#updateExistingAccount, [
+            uid
+          ], {
+            #disableUser: disableUser,
+            #displayName: displayName,
+            #email: email,
+            #emailVerified: emailVerified,
+            #password: password,
+            #phoneNumber: phoneNumber,
+            #photoUrl: photoUrl,
+          }),
           returnValue: Future.value(''));
 
   @override
@@ -198,9 +233,7 @@ void main() {
 
     group('Auth.getUser()', () {
       const uid = 'abcdefghijklmnopqrstuvwxyz';
-      final expectedGetAccountInfoResult = _getValidGetAccountInfoResponse();
-      final expectedUserRecord =
-          UserRecord.fromJson(expectedGetAccountInfoResult['users'][0]);
+      final expectedUserRecord = _getValidGetAccountInfoResponse();
       final expectedError = FirebaseAuthError.userNotFound();
 
       test('should be rejected given an invalid uid', () {
@@ -217,7 +250,7 @@ void main() {
       test('should resolve with a UserRecord on success', () async {
         // Stub getAccountInfoByUid to return expected result.
         when(mockRequestHandler.getAccountInfoByUid(uid))
-            .thenAnswer((_) => Future.value(expectedGetAccountInfoResult));
+            .thenAnswer((_) => Future.value(expectedUserRecord));
 
         var userRecord = await mockRequestHandlerAuth.getUser(uid);
         // Confirm expected user record response returned.
@@ -237,9 +270,7 @@ void main() {
 
     group('Auth.getUserByEmail()', () {
       const email = 'user@gmail.com';
-      final expectedGetAccountInfoResult = _getValidGetAccountInfoResponse();
-      final expectedUserRecord =
-          UserRecord.fromJson(expectedGetAccountInfoResult['users'][0]);
+      final expectedUserRecord = _getValidGetAccountInfoResponse();
       final expectedError = FirebaseAuthError.userNotFound();
 
       test('should be rejected given an invalid email', () {
@@ -257,7 +288,7 @@ void main() {
       test('should resolve with a UserRecord on success', () async {
         // Stub getAccountInfoByEmail to return expected result.
         when(mockRequestHandler.getAccountInfoByEmail(email))
-            .thenAnswer((_) async => expectedGetAccountInfoResult);
+            .thenAnswer((_) async => expectedUserRecord);
         var userRecord = await mockRequestHandlerAuth.getUserByEmail(email);
         // Confirm expected user record response returned.
         expect(userRecord.displayName, 'John Doe');
@@ -277,9 +308,7 @@ void main() {
 
     group('Auth.getUserByPhoneNumber()', () {
       const phoneNumber = '+11234567890';
-      final expectedGetAccountInfoResult = _getValidGetAccountInfoResponse();
-      final expectedUserRecord =
-          UserRecord.fromJson(expectedGetAccountInfoResult['users'][0]);
+      final expectedUserRecord = _getValidGetAccountInfoResponse();
       final expectedError = FirebaseAuthError.userNotFound();
 
       test('should be rejected given an invalid phone number', () {
@@ -297,7 +326,7 @@ void main() {
       test('should resolve with a UserRecord on success', () async {
         // Stub getAccountInfoByPhoneNumber to return expected result.
         when(mockRequestHandler.getAccountInfoByPhoneNumber(phoneNumber))
-            .thenAnswer((_) async => expectedGetAccountInfoResult);
+            .thenAnswer((_) async => expectedUserRecord);
         var userRecord =
             await mockRequestHandlerAuth.getUserByPhoneNumber(phoneNumber);
         // Confirm expected user record response returned.
@@ -319,17 +348,15 @@ void main() {
       final expectedError = FirebaseAuthError.internalError();
       const pageToken = 'PAGE_TOKEN';
       const maxResult = 500;
-      const downloadAccountResponse = {
-        'users': [
-          {'localId': 'UID1'},
-          {'localId': 'UID2'},
-          {'localId': 'UID3'},
+      final downloadAccountResponse = ListUsersResult(
+        users: [
+          UserRecord(uid: 'UID1'),
+          UserRecord(uid: 'UID2'),
+          UserRecord(uid: 'UID3'),
         ],
-        'nextPageToken': 'NEXT_PAGE_TOKEN',
-      };
-      final emptyDownloadAccountResponse = {
-        'users': [],
-      };
+        pageToken: 'NEXT_PAGE_TOKEN',
+      );
+      final emptyDownloadAccountResponse = ListUsersResult(users: []);
 
       test('should be rejected given an invalid page token', () {
         expect(auth.listUsers(null, ''),
@@ -395,21 +422,11 @@ void main() {
 
     group('Auth.createUser()', () {
       const uid = 'abcdefghijklmnopqrstuvwxyz';
-      final expectedGetAccountInfoResult = _getValidGetAccountInfoResponse();
-      final expectedUserRecord =
-          UserRecord.fromJson(expectedGetAccountInfoResult['users'][0]);
+      final expectedUserRecord = _getValidGetAccountInfoResponse();
       final expectedError = FirebaseAuthError.internalError(
           'Unable to create the user record provided.');
-      final request = CreateEditAccountRequest(
-        displayName: expectedUserRecord.displayName,
-        photoUrl: expectedUserRecord.photoUrl,
-        email: expectedUserRecord.email,
-        emailVerified: expectedUserRecord.emailVerified,
-        password: 'password',
-        phoneNumber: expectedUserRecord.phoneNumber,
-      );
 
-      Future<UserRecord> _createUser(Auth auth) => auth.createUser(
+      Future<UserRecord> createUser(Auth auth) => auth.createUser(
             displayName: expectedUserRecord.displayName,
             photoUrl: expectedUserRecord.photoUrl,
             email: expectedUserRecord.email,
@@ -418,6 +435,16 @@ void main() {
             phoneNumber: expectedUserRecord.phoneNumber,
           );
 
+      PostExpectation<Future<String>> whenCreateNewAccount() =>
+          when(mockRequestHandler.createNewAccount(
+            displayName: expectedUserRecord.displayName,
+            photoUrl: expectedUserRecord.photoUrl,
+            email: expectedUserRecord.email,
+            emailVerified: expectedUserRecord.emailVerified,
+            password: 'password',
+            phoneNumber: expectedUserRecord.phoneNumber,
+          ));
+
       test('should be rejected given no properties', () {
         expect(auth.createUser(), throwsFirebaseError('auth/argument-error'));
       });
@@ -425,7 +452,7 @@ void main() {
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
-        expect(_createUser(rejectedAccessTokenAuth),
+        expect(createUser(rejectedAccessTokenAuth),
             throwsFirebaseError('app/invalid-credential'));
       });
 
@@ -433,35 +460,32 @@ void main() {
           'should resolve with a UserRecord on createNewAccount request success',
           () async {
         // Stub createNewAccount to return expected uid.
-        when(mockRequestHandler.createNewAccount(request))
-            .thenAnswer((_) async => uid);
+        whenCreateNewAccount().thenAnswer((_) async => uid);
 
         // Stub getAccountInfoByUid to return expected result.
         when(mockRequestHandler.getAccountInfoByUid(uid))
-            .thenAnswer((_) async => expectedGetAccountInfoResult);
-        var userRecord = await _createUser(mockRequestHandlerAuth);
+            .thenAnswer((_) async => expectedUserRecord);
+        var userRecord = await createUser(mockRequestHandlerAuth);
         // Confirm expected user record response returned.
         expect(userRecord.toJson(), expectedUserRecord.toJson());
       });
 
       test('should throw an error when createNewAccount returns an error', () {
         // Stub createNewAccount to throw a backend error.
-        when(mockRequestHandler.createNewAccount(request))
-            .thenAnswer((_) => throw expectedError);
-        expect(_createUser(mockRequestHandlerAuth), throwsA(expectedError));
+        whenCreateNewAccount().thenAnswer((_) => throw expectedError);
+        expect(createUser(mockRequestHandlerAuth), throwsA(expectedError));
       });
 
       test('should throw an error when getUser returns a User not found error',
           () {
         // Stub createNewAccount to return expected uid.
-        when(mockRequestHandler.createNewAccount(request))
-            .thenAnswer((_) async => uid);
+        whenCreateNewAccount().thenAnswer((_) async => uid);
         // Stub getAccountInfoByUid to throw user not found error.
         final userNotFoundError = FirebaseAuthError.userNotFound();
         when(mockRequestHandler.getAccountInfoByUid(uid))
             .thenAnswer((_) async => throw userNotFoundError);
 
-        expect(_createUser(mockRequestHandlerAuth),
+        expect(createUser(mockRequestHandlerAuth),
             throwsFirebaseError('auth/internal-error'));
       });
 
@@ -469,13 +493,12 @@ void main() {
           'should echo getUser error if an error occurs while retrieving the user record',
           () {
         // Stub createNewAccount to return expected uid.
-        when(mockRequestHandler.createNewAccount(request))
-            .thenAnswer((_) async => uid);
+        whenCreateNewAccount().thenAnswer((_) async => uid);
         // Stub getAccountInfoByUid to throw expected error.
         when(mockRequestHandler.getAccountInfoByUid(uid))
             .thenAnswer((_) async => throw expectedError);
 
-        expect(_createUser(mockRequestHandlerAuth), throwsA(expectedError));
+        expect(createUser(mockRequestHandlerAuth), throwsA(expectedError));
       });
     });
 
@@ -516,22 +539,10 @@ void main() {
 
     group('Auth.updateUser()', () {
       const uid = 'abcdefghijklmnopqrstuvwxyz';
-      final expectedGetAccountInfoResult = _getValidGetAccountInfoResponse();
-      final expectedUserRecord =
-          UserRecord.fromJson(expectedGetAccountInfoResult['users'][0]);
+      final expectedUserRecord = _getValidGetAccountInfoResponse();
       final expectedError = FirebaseAuthError.userNotFound();
 
-      final request = CreateEditAccountRequest(
-        displayName: expectedUserRecord.displayName,
-        photoUrl: expectedUserRecord.photoUrl,
-        email: expectedUserRecord.email,
-        emailVerified: expectedUserRecord.emailVerified,
-        password: 'password',
-        phoneNumber: expectedUserRecord.phoneNumber,
-        uid: uid,
-      );
-
-      Future<UserRecord> _updateUser(Auth auth, String uid) => auth.updateUser(
+      Future<UserRecord> updateUser(Auth auth, String uid) => auth.updateUser(
             uid,
             displayName: expectedUserRecord.displayName,
             photoUrl: expectedUserRecord.photoUrl,
@@ -541,9 +552,20 @@ void main() {
             phoneNumber: expectedUserRecord.phoneNumber,
           );
 
+      PostExpectation<Future<String>> whenUpdateExistingAccount() =>
+          when(mockRequestHandler.updateExistingAccount(
+            uid,
+            displayName: expectedUserRecord.displayName,
+            photoUrl: expectedUserRecord.photoUrl,
+            email: expectedUserRecord.email,
+            emailVerified: expectedUserRecord.emailVerified,
+            password: 'password',
+            phoneNumber: expectedUserRecord.phoneNumber,
+          ));
+
       test('should be rejected given an invalid uid', () {
         final invalidUid = List.filled(129, 'a').join();
-        expect(_updateUser(auth, invalidUid),
+        expect(updateUser(auth, invalidUid),
             throwsFirebaseError('auth/invalid-uid'));
       });
       test('should be rejected given no properties', () {
@@ -554,40 +576,35 @@ void main() {
       test(
           'should be rejected given an app which fails to generate access tokens',
           () {
-        expect(_updateUser(rejectedAccessTokenAuth, uid),
+        expect(updateUser(rejectedAccessTokenAuth, uid),
             throwsFirebaseError('app/invalid-credential'));
       });
       test(
           'should resolve with a UserRecord on updateExistingAccount request success',
           () async {
         // Stub updateExistingAccount to return expected uid.
-        when(mockRequestHandler.updateExistingAccount(uid, request))
-            .thenAnswer((_) async => uid);
+        whenUpdateExistingAccount().thenAnswer((_) async => uid);
         // Stub getAccountInfoByUid to return expected result.
         when(mockRequestHandler.getAccountInfoByUid(uid))
-            .thenAnswer((_) async => expectedGetAccountInfoResult);
-        var userRecord = await _updateUser(mockRequestHandlerAuth, uid);
+            .thenAnswer((_) async => expectedUserRecord);
+        var userRecord = await updateUser(mockRequestHandlerAuth, uid);
         expect(userRecord.toJson(), expectedUserRecord.toJson());
       });
       test('should throw an error when updateExistingAccount returns an error',
           () async {
         // Stub updateExistingAccount to throw a backend error.
-        when(mockRequestHandler.updateExistingAccount(uid, request))
-            .thenThrow(expectedError);
-        expect(
-            _updateUser(mockRequestHandlerAuth, uid), throwsA(expectedError));
+        whenUpdateExistingAccount().thenThrow(expectedError);
+        expect(updateUser(mockRequestHandlerAuth, uid), throwsA(expectedError));
       });
       test(
           'should echo getUser error if an error occurs while retrieving the user record',
           () async {
         // Stub updateExistingAccount to return expected uid.
-        when(mockRequestHandler.updateExistingAccount(uid, request))
-            .thenAnswer((_) async => uid);
+        whenUpdateExistingAccount().thenAnswer((_) async => uid);
         // Stub getAccountInfoByUid to throw an expected error.
         when(mockRequestHandler.getAccountInfoByUid(uid))
             .thenThrow(expectedError);
-        expect(
-            _updateUser(mockRequestHandlerAuth, uid), throwsA(expectedError));
+        expect(updateUser(mockRequestHandlerAuth, uid), throwsA(expectedError));
       });
     });
 
@@ -667,9 +684,7 @@ void main() {
 
     group('Auth.verifyIdToken()', () {
       late String mockIdToken;
-      final expectedAccountInfoResponse = _getValidGetAccountInfoResponse();
-      final expectedUserRecord =
-          UserRecord.fromJson(expectedAccountInfoResponse['users'][0]);
+      final expectedUserRecord = _getValidGetAccountInfoResponse();
       final validSince = expectedUserRecord.tokensValidAfterTime;
 
       setUp(() {
@@ -688,7 +703,7 @@ void main() {
           'should be fulfilled with checkRevoked set to true using an unrevoked ID token',
           () async {
         when(mockRequestHandler.getAccountInfoByUid('someUid'))
-            .thenAnswer((_) async => expectedAccountInfoResponse);
+            .thenAnswer((_) async => expectedUserRecord);
         // Verify ID token while checking if revoked.
         var result =
             await mockRequestHandlerAuth.verifyIdToken(mockIdToken, true);
@@ -706,7 +721,7 @@ void main() {
           'auth_time': oneSecBeforeValidSince.millisecondsSinceEpoch ~/ 1000
         });
         when(mockRequestHandler.getAccountInfoByUid('someUid'))
-            .thenAnswer((_) async => expectedAccountInfoResponse);
+            .thenAnswer((_) async => expectedUserRecord);
 
         // Verify ID token while checking if revoked.
         expect(mockRequestHandlerAuth.verifyIdToken(mockIdToken, true),
@@ -723,7 +738,7 @@ void main() {
           'auth_time': oneSecBeforeValidSince.millisecondsSinceEpoch ~/ 1000
         });
         when(mockRequestHandler.getAccountInfoByUid('someUid'))
-            .thenAnswer((_) async => expectedAccountInfoResponse);
+            .thenAnswer((_) async => expectedUserRecord);
 
         // Verify ID token without checking if revoked.
         // This call should succeed.
@@ -747,20 +762,14 @@ void main() {
           'should be fulfilled with checkRevoked set to true when no validSince available',
           () async {
         // Simulate no validSince set on the user.
-        final noValidSinceGetAccountInfoResponse = {
-          'users': [
-            <String, dynamic>{...expectedAccountInfoResponse['users'][0]}
-              ..remove('validSince')
-          ]
-        };
+        final noValidUserRecord = UserRecord.fromJson({
+          ...expectedUserRecord.toJson(),
+        }..remove('validSince'));
         // Confirm null tokensValidAfterTime on user.
-        expect(
-            UserRecord.fromJson(noValidSinceGetAccountInfoResponse['users']![0])
-                .tokensValidAfterTime,
-            isNull);
+        expect(noValidUserRecord.tokensValidAfterTime, isNull);
         // Simulate getUser returns the expected user with no validSince.
         when(mockRequestHandler.getAccountInfoByUid('someUid'))
-            .thenAnswer((_) async => noValidSinceGetAccountInfoResponse);
+            .thenAnswer((_) async => noValidUserRecord);
         verifyNever(mockRequestHandler.getAccountInfoByUid('someUid'));
         // Verify ID token while checking if revoked.
         var result =
@@ -789,8 +798,8 @@ void main() {
   });
 }
 
-Map<String, dynamic> _getValidGetAccountInfoResponse() {
-  final userResponse = {
+UserRecord _getValidGetAccountInfoResponse() {
+  return UserRecord.fromJson({
     'localId': 'abcdefghijklmnopqrstuvwxyz',
     'email': 'user@gmail.com',
     'emailVerified': true,
@@ -823,9 +832,5 @@ Map<String, dynamic> _getValidGetAccountInfoResponse() {
     'validSince': '1476136676',
     'lastLoginAt': '1476235905000',
     'createdAt': '1476136676000',
-  };
-  return {
-    'kind': 'identitytoolkit#GetAccountInfoResponse',
-    'users': [userResponse],
-  };
+  });
 }

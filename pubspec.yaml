@@ -19,6 +19,7 @@ dependencies:
   crypto_keys: ^0.3.0
   collection: ^1.15.0
   gcloud: ^0.8.0
+  firebaseapis: ^0.1.2
 
 dev_dependencies:
   test: ^1.17.8

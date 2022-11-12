@@ -29,28 +29,21 @@ class Auth implements FirebaseService {
 
   /// Gets the user data for the user corresponding to a given [uid].
   Future<UserRecord> getUser(String uid) async {
-    var response = await _authRequestHandler.getAccountInfoByUid(uid);
-    // Returns the user record populated with server response.
-    return UserRecord.fromJson(response['users'][0]);
+    return await _authRequestHandler.getAccountInfoByUid(uid);
   }
 
   /// Looks up the user identified by the provided email and returns a future
   /// that is fulfilled with a user record for the given user if that user is
   /// found.
   Future<UserRecord> getUserByEmail(String email) async {
-    var response = await _authRequestHandler.getAccountInfoByEmail(email);
-    // Returns the user record populated with server response.
-    return UserRecord.fromJson(response['users'][0]);
+    return await _authRequestHandler.getAccountInfoByEmail(email);
   }
 
   /// Looks up the user identified by the provided phone number and returns a
   /// future that is fulfilled with a user record for the given user if that
   /// user is found.
   Future<UserRecord> getUserByPhoneNumber(String phoneNumber) async {
-    var response =
-        await _authRequestHandler.getAccountInfoByPhoneNumber(phoneNumber);
-    // Returns the user record populated with server response.
-    return UserRecord.fromJson(response['users'][0]);
+    return await _authRequestHandler.getAccountInfoByPhoneNumber(phoneNumber);
   }
 
   /// Retrieves a list of users (single batch only) with a size of [maxResults]
@@ -58,10 +51,8 @@ class Auth implements FirebaseService {
   ///
   /// This is used to retrieve all the users of a specified project in batches.
   Future<ListUsersResult> listUsers(
-      [num? maxResults, String? pageToken]) async {
-    var response = await _authRequestHandler.downloadAccount(
-        maxResults as int?, pageToken);
-    return ListUsersResult.fromJson(response);
+      [int? maxResults, String? pageToken]) async {
+    return await _authRequestHandler.downloadAccount(maxResults, pageToken);
   }
 
   /// Creates a new user.
@@ -76,7 +67,7 @@ class Auth implements FirebaseService {
     String? uid,
   }) async {
     try {
-      uid = await _authRequestHandler.createNewAccount(CreateEditAccountRequest(
+      uid = await _authRequestHandler.createNewAccount(
           disabled: disabled,
           displayName: displayName,
           email: email,
@@ -84,7 +75,7 @@ class Auth implements FirebaseService {
           password: password,
           phoneNumber: phoneNumber,
           photoUrl: photoUrl,
-          uid: uid));
+          uid: uid);
       // Return the corresponding user record.
       return await getUser(uid);
     } on FirebaseException catch (error) {
@@ -118,16 +109,15 @@ class Auth implements FirebaseService {
     String? photoUrl,
   }) async {
     uid = await _authRequestHandler.updateExistingAccount(
-        uid,
-        CreateEditAccountRequest(
-            disabled: disabled,
-            displayName: displayName,
-            email: email,
-            emailVerified: emailVerified,
-            password: password,
-            phoneNumber: phoneNumber,
-            photoUrl: photoUrl,
-            uid: uid));
+      uid,
+      disableUser: disabled,
+      displayName: displayName,
+      email: email,
+      emailVerified: emailVerified,
+      password: password,
+      phoneNumber: phoneNumber,
+      photoUrl: photoUrl,
+    );
     // Return the corresponding user record.
     return await getUser(uid);
   }

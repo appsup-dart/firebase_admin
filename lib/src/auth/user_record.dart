@@ -34,7 +34,7 @@ class UserMetadata extends UnmodifiableSnapshotView {
   DateTime? get lastRefreshTime => get('lastRefreshAt');
 
   /// The date the user last signed in, formatted as a UTC string.
-  DateTime get lastSignInTime => get('lastLoginAt', format: 'epoch:millis');
+  DateTime? get lastSignInTime => get('lastLoginAt', format: 'epoch:millis');
 
   UserMetadata._(Snapshot snapshot) : super(snapshot);
 }

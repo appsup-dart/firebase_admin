@@ -1,3 +1,7 @@
+## 0.3.0-dev.1
+
+ - **FIX**: nullability lastSignInTime. ([84777a48](https://github.com/appsup-dart/firebase_admin/commit/84777a480d6d3e4c235334b8d04b1f4e05486a18))
+
 ## 0.3.0-dev.0
 
  - **REFACTOR**: use firebaseapis for identitytoolkit api calls. ([9296f1de](https://github.com/appsup-dart/firebase_admin/commit/9296f1de9f2e9c9f2ed574e7f057973d30535b72))

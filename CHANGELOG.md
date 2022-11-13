@@ -1,3 +1,7 @@
+## 0.3.0-dev.2
+
+ - **FIX**: getting and updating multi factor enrollments. ([9a5d9627](https://github.com/appsup-dart/firebase_admin/commit/9a5d9627a7ff0b7ddb30aab622d3156855148389))
+
 ## 0.3.0-dev.1
 
  - **FIX**: nullability lastSignInTime. ([84777a48](https://github.com/appsup-dart/firebase_admin/commit/84777a480d6d3e4c235334b8d04b1f4e05486a18))

@@ -1,3 +1,10 @@
+## 0.3.0-dev.0
+
+ - **REFACTOR**: use firebaseapis for identitytoolkit api calls. ([9296f1de](https://github.com/appsup-dart/firebase_admin/commit/9296f1de9f2e9c9f2ed574e7f057973d30535b72))
+ - **FIX**: lastSignInTime returning null. ([d5a5d653](https://github.com/appsup-dart/firebase_admin/commit/d5a5d65395dcb4e41a7481e80914ec91ebb8d9c0))
+ - **FEAT**: support multi factor. ([4449df83](https://github.com/appsup-dart/firebase_admin/commit/4449df83675b36c03edfe46e950c87f862110be0))
+ - **FEAT**: mock auth requests when testing. ([2273c1f9](https://github.com/appsup-dart/firebase_admin/commit/2273c1f9eb899feb2bd46871c0ee8dc3e26ba538))
+
 
 ## 0.2.0
 

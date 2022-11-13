@@ -123,6 +123,7 @@ class AuthRequestHandler {
       password: password,
       phoneNumber: phoneNumber,
       photoUrl: photoUrl,
+      multiFactorEnrolledFactors: multiFactorEnrolledFactors,
     );
 
     var response = await identityToolkitApi.projects.accounts(
@@ -185,6 +186,7 @@ class AuthRequestHandler {
       password: password,
       phoneNumber: phoneNumber,
       photoUrl: photoUrl,
+      multiFactorEnrolledFactors: multiFactorEnrolledFactors,
     );
 
     return _setAccountInfo(GoogleCloudIdentitytoolkitV1SetAccountInfoRequest(
@@ -219,6 +221,7 @@ class AuthRequestHandler {
     String? phoneNumber,
     String? photoUrl,
     String? uid,
+    List<dynamic>? multiFactorEnrolledFactors,
   }) {
     if (disabled == null &&
         displayName == null &&
@@ -226,7 +229,8 @@ class AuthRequestHandler {
         emailVerified == null &&
         password == null &&
         phoneNumber == null &&
-        photoUrl == null) {
+        photoUrl == null &&
+        multiFactorEnrolledFactors == null) {
       throw FirebaseAuthError.invalidArgument();
     }
 

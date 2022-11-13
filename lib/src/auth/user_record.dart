@@ -129,7 +129,7 @@ class UserRecord extends UnmodifiableSnapshotView {
   DateTime? get tokensValidAfterTime => get('validSince', format: 'epoch');
 
   /// The multi-factor related properties for the current user, if available.
-  MultiFactorSettings? get multiFactor => get('mfaInfo');
+  MultiFactorSettings get multiFactor => snapshot.as();
 
   UserRecord.fromJson(Map<String, dynamic> map)
       : super.fromJson(map, decoder: _decoder);
@@ -140,7 +140,7 @@ class MultiFactorSettings extends UnmodifiableSnapshotView {
   /// List of second factors enrolled with the current user.
   ///
   /// Currently only phone second factors are supported.
-  List<MultiFactorInfo> get enrolledFactors => getList('enrollments') ?? [];
+  List<MultiFactorInfo> get enrolledFactors => getList('mfaInfo') ?? [];
 
   MultiFactorSettings._(Snapshot snapshot) : super(snapshot);
 }
@@ -156,12 +156,15 @@ abstract class MultiFactorInfo extends UnmodifiableSnapshotView {
   /// The type identifier of the second factor.
   ///
   /// For SMS second factors, this is phone.
-  String get factorId => get('factorId');
+  String get factorId => get('factorId') ?? 'phone';
 
   /// The ID of the enrolled second factor. This ID is unique to the user.
   String get uid => get('mfaEnrollmentId');
 
   MultiFactorInfo._(Snapshot snapshot) : super(snapshot);
+
+  factory MultiFactorInfo.fromJson(Map<String, dynamic> map) =
+      PhoneMultiFactorInfo.fromJson;
 }
 
 /// Represents a phone specific user-enrolled second factor.
@@ -170,4 +173,7 @@ class PhoneMultiFactorInfo extends MultiFactorInfo {
   String get phoneNumber => get('phoneInfo');
 
   PhoneMultiFactorInfo._(Snapshot snapshot) : super._(snapshot);
+
+  PhoneMultiFactorInfo.fromJson(Map<String, dynamic> map)
+      : this._(Snapshot.fromJson(map, decoder: _decoder));
 }

@@ -1,3 +1,7 @@
+## 0.3.0-dev.3
+
+ - **FIX**: throw FirebaseAuthError on error from identitytoolkit server. ([f05c9893](https://github.com/appsup-dart/firebase_admin/commit/f05c989340bac07ec26b0ba09c79251a679b9593))
+
 ## 0.3.0-dev.2
 
  - **FIX**: getting and updating multi factor enrollments. ([9a5d9627](https://github.com/appsup-dart/firebase_admin/commit/9a5d9627a7ff0b7ddb30aab622d3156855148389))

@@ -9,13 +9,9 @@ import '../utils/error.dart';
 
 import '../app.dart';
 import '../utils/validator.dart' as validator;
-
-import 'package:firebaseapis/identitytoolkit/v1.dart';
+import 'identitytoolkit.dart';
 
 class AuthRequestHandler {
-  /// Firebase Auth request timeout duration in milliseconds.
-  static const _firebaseAuthTimeout = Duration(milliseconds: 25000);
-
   final IdentityToolkitApi identityToolkitApi;
 
   final String projectId;
@@ -26,8 +22,7 @@ class AuthRequestHandler {
   factory AuthRequestHandler(App app) => factory(app);
   AuthRequestHandler._(App app)
       : projectId = app.projectId,
-        identityToolkitApi =
-            IdentityToolkitApi(AuthorizedHttpClient(app, _firebaseAuthTimeout));
+        identityToolkitApi = IdentityToolkitApi(AuthorizedHttpClient(app));
 
   /// Maximum allowed number of users to batch download at one time.
   static const maxDownloadAccountPageSize = 1000;

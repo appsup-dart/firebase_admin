@@ -21,6 +21,7 @@ dependencies:
   gcloud: ^0.8.0
   firebaseapis: ^0.1.2
   snapshot: ^0.2.5
+  _discoveryapis_commons: ^1.0.4
 
 dev_dependencies:
   test: ^1.17.8

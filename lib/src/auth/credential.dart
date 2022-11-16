@@ -42,12 +42,12 @@ class Certificate {
     var keyPair = (v is PrivateKeyInfo) ? v.keyPair : (v as KeyPair?)!;
     var pKey = keyPair.privateKey as RsaPrivateKey;
 
-    String _bytesToBase64(List<int> bytes) {
+    String bytesToBase64(List<int> bytes) {
       return base64Url.encode(bytes).replaceAll('=', '');
     }
 
-    String _intToBase64(BigInt v) {
-      return _bytesToBase64(v
+    String intToBase64(BigInt v) {
+      return bytesToBase64(v
           .toRadixString(16)
           .replaceAllMapped(RegExp('[0-9a-f]{2}'), (m) => '${m.group(0)},')
           .split(',')
@@ -58,10 +58,10 @@ class Certificate {
 
     var k = JsonWebKey.fromJson({
       'kty': 'RSA',
-      'n': _intToBase64(pKey.modulus),
-      'd': _intToBase64(pKey.privateExponent),
-      'p': _intToBase64(pKey.firstPrimeFactor),
-      'q': _intToBase64(pKey.secondPrimeFactor),
+      'n': intToBase64(pKey.modulus),
+      'd': intToBase64(pKey.privateExponent),
+      'p': intToBase64(pKey.firstPrimeFactor),
+      'q': intToBase64(pKey.secondPrimeFactor),
       'alg': 'RS256',
       'kid': json['private_key_id']
     });

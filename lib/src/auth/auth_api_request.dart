@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:firebase_admin/src/auth/user_record.dart';
 
 import '../auth.dart';
 import '../app/app_extension.dart';

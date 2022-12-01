@@ -381,7 +381,7 @@ class FirebaseAuthError extends _PrefixedFirebaseError {
 
   /// Invalid service account.
   FirebaseAuthError.invalidServiceAccount([String? message])
-      : this('invalid-service-account', 'Invalid service account.');
+      : this('invalid-service-account', message ?? 'Invalid service account.');
 
   /// The provided value for the photoURL user property is invalid. It must be a
   /// string URL.

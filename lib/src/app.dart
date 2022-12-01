@@ -101,10 +101,14 @@ class AppOptions {
   /// The name of the default Cloud Storage bucket associated with the App.
   final String? storageBucket;
 
+  /// The client email address of the service account.
+  final String? serviceAccountId;
+
   AppOptions({
     required this.credential,
     this.databaseUrl,
     this.projectId,
     this.storageBucket,
+    this.serviceAccountId,
   });
 }

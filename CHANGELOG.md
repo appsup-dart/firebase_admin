@@ -1,3 +1,8 @@
+## 0.3.0-dev.4
+
+ - **FIX**: date time conversion from epoch. ([c98610b3](https://github.com/appsup-dart/firebase_admin/commit/c98610b33ffc946dfad02e49e9e01005c899164b))
+ - **FEAT**: use iam to sign custom tokens when necessary. ([bc201eea](https://github.com/appsup-dart/firebase_admin/commit/bc201eea63a46323dcc8754851e417da863d32ea))
+
 ## 0.3.0-dev.3
 
  - **FIX**: throw FirebaseAuthError on error from identitytoolkit server. ([f05c9893](https://github.com/appsup-dart/firebase_admin/commit/f05c989340bac07ec26b0ba09c79251a679b9593))

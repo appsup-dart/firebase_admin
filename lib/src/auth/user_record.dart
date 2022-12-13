@@ -15,10 +15,11 @@ final _decoder = SnapshotDecoder()
   ..register<Snapshot, MultiFactorSettings>((s) => MultiFactorSettings._(s))
   ..register<Snapshot, MultiFactorInfo>((s) => PhoneMultiFactorInfo._(s))
   ..register<String, DateTime>(
-      (v) => DateTime.fromMicrosecondsSinceEpoch((num.parse(v) * 1000).toInt()),
+      (v) => DateTime.fromMicrosecondsSinceEpoch(
+          (num.parse(v) * 1000 * 1000).toInt()),
       format: RegExp('epoch'))
   ..register<String, DateTime>(
-      (v) => DateTime.fromMicrosecondsSinceEpoch(num.parse(v).toInt()),
+      (v) => DateTime.fromMicrosecondsSinceEpoch((num.parse(v) * 1000).toInt()),
       format: RegExp('epoch:millis'))
   ..seal();
 

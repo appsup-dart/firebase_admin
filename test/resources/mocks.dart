@@ -13,6 +13,7 @@ var storageBucket = 'bucketName.appspot.com';
 var credential = FirebaseAdmin.instance.testCredentials();
 
 var appOptions = AppOptions(
+  projectId: projectId,
   credential: credential,
   databaseUrl: databaseURL,
   storageBucket: storageBucket,

@@ -204,7 +204,7 @@ void main() {
         var app = admin.initializeApp(mocks.appOptions);
         expect(app.options.credential, TypeMatcher<ServiceAccountCredential>());
         expect(app.options.databaseUrl, 'https://databaseName.firebaseio.com');
-        expect(app.options.projectId, null);
+        expect(app.options.projectId, 'project_id');
         expect(app.options.storageBucket, 'bucketName.appspot.com');
       });
 

@@ -788,7 +788,7 @@ void main() {
         var token = await auth.createCustomToken(uid, {'isAdmin': true});
         var decodedToken = IdToken.unverified(token);
         expect(decodedToken.claims['uid'], uid);
-        expect(decodedToken.claims['isAdmin'], isTrue);
+        expect(decodedToken.claims['claims']['isAdmin'], isTrue);
 
         var jwks = JsonWebKeySet.fromJson(json.decode(
             File('test/resources/openid-jwks.json').readAsStringSync()));

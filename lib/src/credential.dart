@@ -97,7 +97,7 @@ class Credentials {
   static String? get _gcloudCredentialPath {
     var config = _configDir;
     if (config == null) return null;
-    return path.join(config, 'gcloud/application_default_credentials.json');
+    return path.join(config, 'gcloud', 'application_default_credentials.json');
   }
 
   /// The path where credentials obtained by doing [Credentials.login] are
@@ -110,7 +110,7 @@ class Credentials {
     var config = _configDir;
     if (config == null) return null;
     return path.join(
-        config, 'firebase_admin/application_default_credentials.json');
+        config, 'firebase_admin', 'application_default_credentials.json');
   }
 
   static String? get _configDir {

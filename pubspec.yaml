@@ -15,7 +15,7 @@ dependencies:
   firebase_dart: ^1.0.10
   path: ^1.8.0
   meta: ^1.4.0
-  http: ^0.13.0
+  http: '>=0.13.0 <2.0.0'
   crypto_keys: ^0.3.0
   collection: ^1.15.0
   gcloud: ^0.8.0

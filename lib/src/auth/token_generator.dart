@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:firebase_admin/firebase_admin.dart';
-import 'package:firebase_admin/src/auth/credential.dart';
 import 'package:jose/jose.dart';
 import 'package:googleapis/iamcredentials/v1.dart' as iamcredentials;
 import 'package:googleapis/iam/v1.dart' as iam;

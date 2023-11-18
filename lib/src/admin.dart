@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:firebase_admin/src/utils/env.dart';
 import 'package:firebase_admin/src/utils/error.dart';
 
 import 'app.dart';
 import 'auth/credential.dart';
 import 'credential.dart';
-import 'package:dotenv/dotenv.dart';
 
 /// Provides access to Firebase Admin APIs.
 ///

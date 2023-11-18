@@ -217,10 +217,8 @@ class FirebaseAuthError extends _PrefixedFirebaseError {
   /// server containing additional information. If the error persists, please
   /// report the problem to our Bug Report support channel.
   FirebaseAuthError.internalError([String? message, rawServerResponse])
-      : this(
-            'internal-error',
-            (message ?? 'An internal error has occurred.') +
-                'Raw server response: "${json.encode(rawServerResponse)}"');
+      : this('internal-error',
+            '${message ?? 'An internal error has occurred.'}Raw server response: "${json.encode(rawServerResponse)}"');
 
   /// An invalid argument was provided to an Authentication method.
   ///
@@ -385,7 +383,7 @@ class FirebaseAuthError extends _PrefixedFirebaseError {
 
   /// Invalid service account.
   FirebaseAuthError.invalidServiceAccount([String? message])
-      : this('invalid-service-account', 'Invalid service account.');
+      : this('invalid-service-account', message ?? 'Invalid service account.');
 
   /// The provided value for the photoURL user property is invalid. It must be a
   /// string URL.
@@ -545,75 +543,75 @@ class FirebaseAuthError extends _PrefixedFirebaseError {
 
   //
 
-  FirebaseAuthError.QUOTA_EXCEEDED([String? message])
+  FirebaseAuthError.quotaExceeded([String? message])
       : this(
             'quota-exceeded',
             message ??
                 'The project quota for the specified operation has been exceeded.');
-  FirebaseAuthError.TENANT_NOT_FOUND([String? message])
+  FirebaseAuthError.tenantNotFound([String? message])
       : this(
             'tenant-not-found',
             message ??
                 'There is no tenant corresponding to the provided identifier.');
-  FirebaseAuthError.UNSUPPORTED_TENANT_OPERATION([String? message])
+  FirebaseAuthError.unsupportedTenantOperation([String? message])
       : this(
             'unsupported-tenant-operation',
             message ??
                 'This operation is not supported in a multi-tenant context.');
-  FirebaseAuthError.MISSING_DISPLAY_NAME([String? message])
+  FirebaseAuthError.missingDisplayName([String? message])
       : this(
             'missing-display-name',
             message ??
                 'The resource being created or edited is missing a valid display name.');
-  FirebaseAuthError.MISSING_ISSUER([String? message])
+  FirebaseAuthError.missingIssuer([String? message])
       : this(
             'missing-issuer',
             message ??
                 'The OAuth/OIDC configuration issuer must not be empty.');
-  FirebaseAuthError.MISSING_OAUTH_CLIENT_ID([String? message])
+  FirebaseAuthError.missingOAuthClientId([String? message])
       : this(
             'missing-oauth-client-id',
             message ??
                 'The OAuth/OIDC configuration client ID must not be empty.');
-  FirebaseAuthError.MISSING_PROVIDER_ID([String? message])
+  FirebaseAuthError.missingProviderId([String? message])
       : this('missing-provider-id',
             message ?? 'A valid provider ID must be provided in the request.');
-  FirebaseAuthError.MISSING_SAML_RELYING_PARTY_CONFIG([String? message])
+  FirebaseAuthError.missingSamlRelyingPartyConfig([String? message])
       : this(
             'missing-saml-relying-party-config',
             message ??
                 'The SAML configuration provided is missing a relying party configuration.');
   //
   ///
-  FirebaseAuthError.MISSING_CONFIG([String? message])
+  FirebaseAuthError.missingConfig([String? message])
       : this(
             'missing-config',
             message ??
                 'The provided configuration is missing required attributes.');
-  FirebaseAuthError.INVALID_TOKENS_VALID_AFTER_TIME([String? message])
+  FirebaseAuthError.invalidTokensValidAfterTime([String? message])
       : this(
             'invalid-tokens-valid-after-time',
             message ??
                 'The tokensValidAfterTime must be a valid UTC number in seconds.');
 
-  FirebaseAuthError.INVALID_TENANT_ID([String? message])
+  FirebaseAuthError.invalidTenantId([String? message])
       : this('invalid-tenant-id',
             message ?? 'The tenant ID must be a valid non-empty string.');
-  FirebaseAuthError.INVALID_TENANT_TYPE([String? message])
+  FirebaseAuthError.invalidTenantType([String? message])
       : this(
             'invalid-tenant-type',
             message ??
                 'Tenant type must be either "full_service" or "lightweight".');
 
-  FirebaseAuthError.INVALID_PROJECT_ID([String? message])
+  FirebaseAuthError.invalidProjectId([String? message])
       : this(
             'invalid-project-id',
             message ??
                 'Invalid parent project. Either parent project doesn\'t exist or didn\'t enable multi-tenancy.');
-  FirebaseAuthError.INVALID_NAME([String? message])
+  FirebaseAuthError.invalidName([String? message])
       : this('invalid-name',
             message ?? 'The resource name provided is invalid.');
-  FirebaseAuthError.INVALID_OAUTH_CLIENT_ID([String? message])
+  FirebaseAuthError.invalidOAuthClientId([String? message])
       : this('invalid-oauth-client-id',
             message ?? 'The provided OAuth client ID is invalid.');
   //
@@ -622,26 +620,26 @@ class FirebaseAuthError extends _PrefixedFirebaseError {
       : this('billing-not-enabled',
             message ?? 'Feature requires billing to be enabled.');
 
-  FirebaseAuthError.CONFIGURATION_EXISTS([String? message])
+  FirebaseAuthError.configurationExists([String? message])
       : this(
             'configuration-exists',
             message ??
                 'A configuration already exists with the provided identifier.');
-  FirebaseAuthError.CONFIGURATION_NOT_FOUND([String? message])
+  FirebaseAuthError.configurationNotFound([String? message])
       : this(
             'configuration-not-found',
             message ??
                 'There is no configuration corresponding to the provided identifier.');
 
-  FirebaseAuthError.INVALID_CONFIG([String? message])
+  FirebaseAuthError.invalidConfigs([String? message])
       : this('invalid-config',
             message ?? 'The provided configuration is invalid.');
-  FirebaseAuthError.MISMATCHING_TENANT_ID([String? message])
+  FirebaseAuthError.mismatchingTenantId([String? message])
       : this(
             'mismatching-tenant-id',
             message ??
                 'User tenant ID does not match with the current TenantAwareAuth tenant ID.');
-  FirebaseAuthError.NOT_FOUND([String? message])
+  FirebaseAuthError.notFound([String? message])
       : this('not-found', message ?? 'The requested resource was not found.');
 
   FirebaseAuthError(String code, String message) : super('auth', code, message);

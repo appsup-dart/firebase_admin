@@ -1,8 +1,14 @@
+import 'dart:convert';
+
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/auth/credential.dart';
 import 'package:jose/jose.dart';
+import 'package:googleapis/iamcredentials/v1.dart' as iamcredentials;
+import 'package:googleapis/iam/v1.dart' as iam;
 
+import '../utils/api_request.dart';
 import '../utils/validator.dart' as validator;
 
 /// Class for generating different types of Firebase Auth tokens (JWTs).
@@ -14,9 +20,6 @@ class FirebaseTokenGenerator {
       (app) => FirebaseTokenGenerator(app);
 
   FirebaseTokenGenerator(this.app);
-
-  Certificate get certificate =>
-      (app.options.credential as ServiceAccountCredential).certificate;
 
   // List of blacklisted claims which cannot be provided when creating a custom token
   static const blacklistedClaims = [
@@ -34,15 +37,17 @@ class FirebaseTokenGenerator {
     'jti',
     'nbf',
     'nonce',
+    'sub',
+    'firebase',
+    'user_id',
   ];
 
   // Audience to use for Firebase Auth Custom tokens
   static const firebaseAudience =
       'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit';
 
-  /// Creates a new Firebase Auth Custom token.
-  Future<String> createCustomToken(
-      String uid, Map<String, dynamic> developerClaims) async {
+  Map<String, dynamic> _createCustomTokenPayload(String uid,
+      Map<String, dynamic> developerClaims, String serviceAccountId) {
     if (!validator.isUid(uid)) {
       throw FirebaseAuthError.invalidArgument(
           'First argument to createCustomToken() must be a non-empty string uid.');
@@ -56,21 +61,66 @@ class FirebaseTokenGenerator {
     }
 
     var iat = clock.now();
-    var claims = {
+    return {
       'aud': firebaseAudience,
       'iat': iat.millisecondsSinceEpoch ~/ 1000,
       'exp': iat.add(Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000,
-      'iss': certificate.clientEmail,
-      'sub': certificate.clientEmail,
+      'iss': serviceAccountId,
+      'sub': serviceAccountId,
       'uid': uid,
-      ...developerClaims
+      'claims': developerClaims,
     };
+  }
 
-    var builder = JsonWebSignatureBuilder()
-      ..jsonContent = claims
-      ..setProtectedHeader('typ', 'JWT')
-      ..addRecipient(certificate.privateKey, algorithm: 'RS256');
+  /// Creates a new Firebase Auth Custom token.
+  Future<String> createCustomToken(
+      String uid, Map<String, dynamic> developerClaims) async {
+    var credential = app.options.credential;
+    // If the SDK was initialized with a service account, use it to sign bytes.
+    if (credential is ServiceAccountCredential &&
+        credential.certificate.projectId == app.options.projectId) {
+      var certificate = credential.certificate;
+      var claims = _createCustomTokenPayload(
+          uid, developerClaims, certificate.clientEmail);
 
-    return builder.build().toCompactSerialization();
+      var builder = JsonWebSignatureBuilder()
+        ..jsonContent = claims
+        ..setProtectedHeader('typ', 'JWT')
+        ..addRecipient(certificate.privateKey, algorithm: 'RS256');
+
+      return builder.build().toCompactSerialization();
+    }
+
+    // If the SDK was initialized with a service account email, use it with the IAM service
+    // to sign bytes.
+    var serviceAccountId = app.options.serviceAccountId;
+
+    if (serviceAccountId == null) {
+      /// Find a service account id in the project
+      var iamApi = iam.IamApi(AuthorizedHttpClient(app));
+      var accounts = await iamApi.projects.serviceAccounts
+          .list('projects/${app.options.projectId}');
+
+      var account = accounts.accounts!.firstWhereOrNull(
+          (a) => a.email?.startsWith('firebase-adminsdk-') ?? false);
+      serviceAccountId = account?.email;
+    }
+
+    if (serviceAccountId != null) {
+      var claims =
+          _createCustomTokenPayload(uid, developerClaims, serviceAccountId);
+      var client = iamcredentials.IAMCredentialsApi(AuthorizedHttpClient(app));
+
+      var r = await client.projects.serviceAccounts.signJwt(
+          iamcredentials.SignJwtRequest(
+            payload: json.encode(claims),
+          ),
+          'projects/-/serviceAccounts/$serviceAccountId');
+
+      return r.signedJwt!;
+    }
+
+    throw FirebaseAuthError.invalidServiceAccount(
+        'Failed to determine service account ID. Initialize the SDK with service account credentials or specify a service account ID with iam.serviceAccounts.signBlob permission.');
   }
 }

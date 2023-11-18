@@ -4,6 +4,7 @@ import 'package:firebase_admin/src/storage.dart';
 
 import '../firebase_admin.dart';
 import 'app/app.dart';
+import 'database.dart';
 import 'service.dart';
 
 /// Represents initialized Firebase application and provides access to the
@@ -100,10 +101,14 @@ class AppOptions {
   /// The name of the default Cloud Storage bucket associated with the App.
   final String? storageBucket;
 
+  /// The client email address of the service account.
+  final String? serviceAccountId;
+
   AppOptions({
     required this.credential,
     this.databaseUrl,
     this.projectId,
     this.storageBucket,
+    this.serviceAccountId,
   });
 }

@@ -11,6 +11,8 @@ void main() async {
 
   // when no credentials found, login using openid
   // the credentials are stored on disk for later use
+  // either set the parameters clientId and clientSecret of the login method or
+  // set the env variable FIREBASE_CLIENT_ID and FIREBASE_CLIENT_SECRET
   credential ??= await Credentials.login();
 
   var projectId = 'some-project';

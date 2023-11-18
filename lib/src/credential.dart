@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dotenv/dotenv.dart';
+import 'package:firebase_admin/src/utils/env.dart';
 import 'package:openid_client/openid_client_io.dart';
 
 import 'auth/credential.dart';
@@ -26,9 +26,9 @@ class Credentials {
 
     var client = Client(
       issuer,
-      clientId ??
-          '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com',
-      clientSecret: clientSecret ?? 'j9iVZfS8kkCEFUPaAeJV0sAi',
+      clientId ?? String.fromEnvironment('FIREBASE_CLIENT_ID'),
+      clientSecret:
+          clientSecret ?? String.fromEnvironment('FIREBASE_CLIENT_SECRET'),
     );
 
     // create an authenticator
@@ -100,12 +100,6 @@ class Credentials {
     return path.join(config, 'gcloud/application_default_credentials.json');
   }
 
-  static String? get _firebaseConfigPath {
-    var config = _configDir;
-    if (config == null) return null;
-    return path.join(config, 'configstore/firebase-tools.json');
-  }
-
   /// The path where credentials obtained by doing [Credentials.login] are
   /// stored
   ///
@@ -126,7 +120,7 @@ class Credentials {
     }
 
     // On *nix the gcloud cli creates a . dir.
-    if (env.containsKey('HOME')) {
+    if (env.isDefined('HOME')) {
       return path.join(env['HOME']!, '.config');
     }
     return null;
@@ -153,24 +147,7 @@ class Credentials {
     if (_gcloudCredentialPath != null) {
       final refreshToken = _readCredentialFile(_gcloudCredentialPath!, true);
       if (refreshToken != null) {
-        // End user credentials from the Google Cloud SDK or Google Cloud Shell
-        // are not supported
-        if (refreshToken['client_id'] !=
-            '764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com') {
-          return RefreshTokenCredential(refreshToken);
-        }
-      }
-    }
-
-    // When firebase cli installed, use it's token
-    if (_firebaseConfigPath != null) {
-      var f = File(_firebaseConfigPath!);
-      if (f.existsSync()) {
-        var v = json.decode(f.readAsStringSync());
-        return RefreshTokenCredential(v['tokens']
-          ..['client_id'] =
-              '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com'
-          ..['client_secret'] = 'j9iVZfS8kkCEFUPaAeJV0sAi');
+        return RefreshTokenCredential(refreshToken);
       }
     }
 

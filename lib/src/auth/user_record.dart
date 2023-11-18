@@ -1,160 +1,180 @@
 import 'dart:convert';
 
+import 'package:snapshot/snapshot.dart';
+
+import '../auth.dart';
+
 /// 'REDACTED', encoded as a base64 string.
 final _b64Redacted = base64.encode('REDACTED'.codeUnits);
 
+final _decoder = SnapshotDecoder()
+  ..register<String, Map<String, dynamic>>((v) => json.decode(v),
+      format: 'json')
+  ..register<Snapshot, UserMetadata>((s) => UserMetadata._(s))
+  ..register<Snapshot, UserInfo>((s) => UserInfo._(s))
+  ..register<Snapshot, MultiFactorSettings>((s) => MultiFactorSettings._(s))
+  ..register<Snapshot, MultiFactorInfo>((s) => PhoneMultiFactorInfo._(s))
+  ..register<String, DateTime>(
+      (v) => DateTime.fromMicrosecondsSinceEpoch(
+          (num.parse(v) * 1000 * 1000).toInt()),
+      format: RegExp('epoch'))
+  ..register<String, DateTime>(
+      (v) => DateTime.fromMicrosecondsSinceEpoch((num.parse(v) * 1000).toInt()),
+      format: RegExp('epoch:millis'))
+  ..seal();
+
 /// User metadata class that provides metadata information like user account
 /// creation and last sign in time.
-class UserMetadata {
-  final DateTime? creationTime;
-  final DateTime? lastSignInTime;
-  UserMetadata({this.creationTime, this.lastSignInTime});
-  UserMetadata.fromJson(Map<String, dynamic> map)
-      : this(
-            creationTime: map['createdAt'] == null
-                ? null
-                : DateTime.fromMillisecondsSinceEpoch(
-                    int.parse(map['createdAt'])),
-            lastSignInTime: map['lastSignInTime'] == null
-                ? null
-                : DateTime.fromMillisecondsSinceEpoch(
-                    int.parse(map['lastSignInTime'])));
+class UserMetadata extends UnmodifiableSnapshotView {
+  /// The date the user was created
+  DateTime get creationTime => get('createdAt', format: 'epoch:millis');
 
-  Map<String, dynamic> toJson() {
-    return {
-      'lastSignInTime': lastSignInTime?.toIso8601String(),
-      'creationTime': creationTime?.toIso8601String(),
-    };
-  }
+  /// The time at which the user was last active (ID token refreshed).
+  ///
+  /// Returns null if the user was never active.
+  DateTime? get lastRefreshTime => get('lastRefreshAt');
+
+  /// The date the user last signed in, formatted as a UTC string.
+  DateTime? get lastSignInTime => get('lastLoginAt', format: 'epoch:millis');
+
+  UserMetadata._(Snapshot snapshot) : super(snapshot);
 }
 
 /// User info class that provides provider user information for different
 /// Firebase providers like google.com, facebook.com, password, etc.
-class UserInfo {
-  final String uid;
-  final String? displayName;
-  final String? email;
-  final String? photoUrl;
-  final String providerId;
-  final String? phoneNumber;
+class UserInfo extends UnmodifiableSnapshotView {
+  /// The user identifier for the linked provider.
+  String get uid => get('rawId');
 
-  UserInfo(
-      {required this.uid,
-      this.displayName,
-      this.email,
-      this.photoUrl,
-      required this.providerId,
-      this.phoneNumber});
+  /// The display name for the linked provider.
+  String? get displayName => get('displayName');
 
-  UserInfo.fromJson(Map<String, dynamic> map)
-      : this(
-          uid: map['rawId'],
-          displayName: map['displayName'],
-          email: map['email'],
-          photoUrl: map['photoURL'],
-          providerId: map['providerId'],
-          phoneNumber: map['phoneNumber'],
-        );
+  /// The email for the linked provider.
+  String? get email => get('email');
 
-  Map<String, dynamic> toJson() => {
-        'uid': uid,
-        'displayName': displayName,
-        'email': email,
-        'photoURL': photoUrl,
-        'providerId': providerId,
-        'phoneNumber': phoneNumber,
-      };
+  /// The photo URL for the linked provider.
+  Uri? get photoUrl => get('photoUrl');
+
+  /// The linked provider ID (for example, "google.com" for the Google provider).
+  String get providerId => get('providerId');
+
+  /// The phone number for the linked provider.
+  String? get phoneNumber => get('phoneNumber');
+
+  UserInfo._(Snapshot snapshot) : super(snapshot);
 }
 
-/// User record class that defines the Firebase user object populated from
-/// the Firebase Auth getAccountInfo response.
-class UserRecord {
-  final String uid;
-  final String? email;
-  final bool? emailVerified;
-  final String? displayName;
-  final String? photoUrl;
-  final String? phoneNumber;
-  final bool? disabled;
-  final UserMetadata? metadata;
-  final List<UserInfo>? providerData;
-  final String? passwordHash;
-  final String? passwordSalt;
-  final Map<String, dynamic>? customClaims;
-  final String? tenantId;
-  final DateTime? tokensValidAfterTime;
+/// Represents a user.
+class UserRecord extends UnmodifiableSnapshotView {
+  /// The user's uid.
+  String get uid => get('localId');
+
+  /// The user's primary email, if set.
+  String? get email => get('email');
+
+  /// Whether or not the user's primary email is verified.
+  bool get emailVerified => get('emailVerified') ?? false;
+
+  /// The user's display name.
+  String? get displayName => get('displayName');
+
+  /// The user's photo URL.
+  Uri? get photoUrl => get('photoUrl');
+
+  /// The user's primary phone number, if set.
+  String? get phoneNumber => get('phoneNumber');
+
+  /// Whether or not the user is disabled.
+  bool get disabled => get('disabled') ?? false;
+
+  /// Additional metadata about the user.
+  UserMetadata get metadata => snapshot.as();
+
+  /// An array of providers (for example, Google, Facebook) linked to the user.
+  List<UserInfo> get providerData => getList('providerUserInfo') ?? [];
+
+  /// The user's hashed password (base64-encoded), only if Firebase Auth hashing
+  /// algorithm (SCRYPT) is used.
+  ///
+  /// If a different hashing algorithm had been used when uploading this user,
+  /// as is typical when migrating from another Auth system, this will be an
+  /// empty string. If no password is set, this is null. This is only available
+  /// when the user is obtained from [Auth.listUsers].
+  String? get passwordHash =>
+      get('passwordHash') == _b64Redacted ? null : get('passwordHash');
+
+  /// The user's password salt (base64-encoded), only if Firebase Auth hashing
+  /// algorithm (SCRYPT) is used.
+  ///
+  /// If a different hashing algorithm had been used to upload this user,
+  /// typical when migrating from another Auth system, this will be an empty
+  /// string. If no password is set, this is null. This is only available when
+  /// the user is obtained from [Auth.listUsers].
+  String? get passwordSalt => get('salt') ?? '';
+
+  /// The user's custom claims object if available, typically used to define
+  /// user roles and propagated to an authenticated user's ID token.
+  ///
+  /// This is set via [Auth.setCustomUserClaims].
+  Map<String, dynamic>? get customClaims =>
+      get('customAttributes', format: 'json');
+
+  /// The ID of the tenant the user belongs to, if available.
+  String? get tenantId => get('tenantId');
+
+  /// The date the user's tokens are valid after.
+  ///
+  /// This is updated every time the user's refresh token are revoked either
+  /// from the [Auth.revokeRefreshTokens] API or from the Firebase Auth backend
+  /// on big account changes (password resets, password or email updates, etc).
+  DateTime? get tokensValidAfterTime => get('validSince', format: 'epoch');
+
+  /// The multi-factor related properties for the current user, if available.
+  MultiFactorSettings get multiFactor => snapshot.as();
 
   UserRecord.fromJson(Map<String, dynamic> map)
-      : this(
-            uid: map['localId'],
-            email: map['email'],
-            emailVerified: map['emailVerified'] ?? false,
-            displayName: map['displayName'],
-            photoUrl: map['photoUrl'],
-            phoneNumber: map['phoneNumber'],
-            // If disabled is not provided, the account is enabled by default.
-            disabled: map['disabled'] ?? false,
-            metadata: UserMetadata.fromJson(map),
-            providerData: (map['providerUserInfo'] as List? ?? [])
-                .map((v) => UserInfo.fromJson(v))
-                .toList(),
-            // If the password hash is redacted (probably due to missing permissions)
-            // then clear it out, similar to how the salt is returned. (Otherwise, it
-            // *looks* like a b64-encoded hash is present, which is confusing.)
-            passwordHash: map['passwordHash'] == _b64Redacted
-                ? null
-                : map['passwordHash'],
-            passwordSalt: map['passwordSalt'],
-            customClaims: (() {
-              try {
-                return json.decode(map['customAttributes']);
-              } catch (e) {
-                return null;
-              }
-            })(),
-            tokensValidAfterTime: map['validSince'] == null
-                ? null
-                : DateTime.fromMillisecondsSinceEpoch(
-                    int.parse(map['validSince']) * 1000),
-            tenantId: map['tenantId']);
+      : super.fromJson(map, decoder: _decoder);
+}
 
-  UserRecord(
-      {required this.uid,
-      this.email,
-      this.emailVerified,
-      this.displayName,
-      this.photoUrl,
-      this.phoneNumber,
-      this.disabled,
-      this.metadata,
-      this.providerData,
-      this.passwordHash,
-      this.passwordSalt,
-      this.customClaims,
-      this.tokensValidAfterTime,
-      this.tenantId});
+/// The multi-factor related user settings.
+class MultiFactorSettings extends UnmodifiableSnapshotView {
+  /// List of second factors enrolled with the current user.
+  ///
+  /// Currently only phone second factors are supported.
+  List<MultiFactorInfo> get enrolledFactors => getList('mfaInfo') ?? [];
 
-/*
+  MultiFactorSettings._(Snapshot snapshot) : super(snapshot);
+}
 
-  utils.addReadonlyGetter(this, 'tenantId', response.tenantId);
-  }
+/// Represents the common properties of a user-enrolled second factor.
+abstract class MultiFactorInfo extends UnmodifiableSnapshotView {
+  /// The optional display name of the enrolled second factor.
+  String? get displayName => get('displayName');
 
-  */
+  /// The optional date the second factor was enrolled.
+  DateTime? get enrollmentTime => get('enrolledAt');
 
-  Map<String, dynamic> toJson() => {
-        'uid': uid,
-        'email': email,
-        'emailVerified': emailVerified,
-        'displayName': displayName,
-        'photoUrl': photoUrl,
-        'phoneNumber': phoneNumber,
-        'disabled': disabled,
-        'metadata': metadata!.toJson(),
-        'passwordHash': passwordHash,
-        'passwordSalt': passwordSalt,
-        'customClaims': customClaims, // TODO deep copy
-        'tokensValidAfterTime': tokensValidAfterTime?.toIso8601String(),
-        'tenantId': tenantId,
-        'providerData': providerData!.map((v) => v.toJson()).toList()
-      };
+  /// The type identifier of the second factor.
+  ///
+  /// For SMS second factors, this is phone.
+  String get factorId => get('factorId') ?? 'phone';
+
+  /// The ID of the enrolled second factor. This ID is unique to the user.
+  String get uid => get('mfaEnrollmentId');
+
+  MultiFactorInfo._(Snapshot snapshot) : super(snapshot);
+
+  factory MultiFactorInfo.fromJson(Map<String, dynamic> map) =
+      PhoneMultiFactorInfo.fromJson;
+}
+
+/// Represents a phone specific user-enrolled second factor.
+class PhoneMultiFactorInfo extends MultiFactorInfo {
+  /// The phone number associated with a phone second factor.
+  String get phoneNumber => get('phoneInfo');
+
+  PhoneMultiFactorInfo._(Snapshot snapshot) : super._(snapshot);
+
+  PhoneMultiFactorInfo.fromJson(Map<String, dynamic> map)
+      : this._(Snapshot.fromJson(map, decoder: _decoder));
 }

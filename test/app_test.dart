@@ -118,7 +118,7 @@ void main() {
           admin.initializeApp();
         },
             throwsAppError(
-                'Failed to parse app options file: FileSystemException: '
+                'Failed to parse app options file: PathNotFoundException: '
                 "Cannot open file, path = './test/resources/non_existant.json' (OS Error: No such file or directory, errno = 2)"));
       });
 

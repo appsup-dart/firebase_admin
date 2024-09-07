@@ -15,14 +15,14 @@ dependencies:
   firebase_dart: ^1.0.10
   path: ^1.8.0
   meta: ^1.4.0
-  http: ^0.13.0
+  http: ">=0.13.0 <2.0.0"
   crypto_keys: ^0.3.0
   collection: ^1.15.0
   gcloud: ^0.8.0
-  firebaseapis: ^0.1.2
+  firebaseapis: ">=0.1.2 <0.3.0"
   snapshot: ^0.2.5
   _discoveryapis_commons: ^1.0.4
-  googleapis: ^9.2.0
+  googleapis: ">=0.9.2 <14.0.0"
 
 dev_dependencies:
   test: ^1.17.8

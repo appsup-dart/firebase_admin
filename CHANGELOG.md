@@ -1,3 +1,7 @@
+## 0.3.0
+
+ - Graduate package to a stable release. See pre-releases prior to this version for changelog entries.
+
 ## 0.3.0-dev.5
 
  - **FIX**: deleting app no longer throws exception. ([e72b03d0](https://github.com/appsup-dart/firebase_admin/commit/e72b03d08538eb4af868c5c779d31dd14ed051d3))

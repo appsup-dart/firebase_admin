@@ -4,7 +4,7 @@ version: 0.3.0-dev.5
 homepage: https://github.com/appsup-dart/firebase_admin
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.17.0 <3.0.0'
 
 dependencies:
   clock: ^1.1.0
@@ -18,6 +18,7 @@ dependencies:
   http: ^0.13.0
   crypto_keys: ^0.3.0
   collection: ^1.15.0
+  maps_toolkit: ^2.0.1
   gcloud: ^0.8.0
   firebaseapis: ^0.1.2
   snapshot: ^0.2.5

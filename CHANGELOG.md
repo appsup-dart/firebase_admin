@@ -1,3 +1,32 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 2025-01-27
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`firebase_admin` - `v0.3.0+1`](#firebase_admin---v0301)
+
+---
+
+#### `firebase_admin` - `v0.3.0+1`
+
+ - **FIX**: login showing error page, unregistered scope: profile. ([b0c33c68](https://github.com/appsup-dart/firebase_admin/commit/b0c33c6852419663eb386f09ec397b52b7f314de))
+
+## 0.3.0+1
+
+ - **FIX**: login showing error page, unregistered scope: profile. ([b0c33c68](https://github.com/appsup-dart/firebase_admin/commit/b0c33c6852419663eb386f09ec397b52b7f314de))
+
 ## 0.3.0
 
  - Graduate package to a stable release. See pre-releases prior to this version for changelog entries.

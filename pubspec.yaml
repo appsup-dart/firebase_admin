@@ -1,6 +1,6 @@
 name: firebase_admin
 description: A port of the Firebase admin sdk to pure, idiomatic Dart code
-version: 0.3.0
+version: 0.3.0+1
 homepage: https://github.com/appsup-dart/firebase_admin
 
 environment:
@@ -29,6 +29,7 @@ dev_dependencies:
   fake_async: ^1.2.0
   lints: ">=2.0.0 <5.0.0"
   mockito: ^5.0.10
+  melos: ^6.3.2
 
 false_secrets:
  - /lib/src/testing.dart 

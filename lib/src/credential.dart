@@ -42,6 +42,8 @@ class Credentials {
         ],
         port: 4000);
 
+    authenticator.flow.scopes.remove('profile');
+
     // starts the authentication
     var c = await authenticator.authorize(); // this will open a browser
 

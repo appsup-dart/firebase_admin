@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-03-26
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`firebase_admin` - `v0.3.0+2`](#firebase_admin---v0302)
+
+---
+
+#### `firebase_admin` - `v0.3.0+2`
+
+ - **FIX**: Converting object to an encodable object failed: Instance of 'DetailedApiRequestError'. ([bd2e8463](https://github.com/appsup-dart/firebase_admin/commit/bd2e84631a095bf50946069a85842140140ec9b3))
+
+## 0.3.0+2
+
+ - **FIX**: Converting object to an encodable object failed: Instance of 'DetailedApiRequestError'. ([bd2e8463](https://github.com/appsup-dart/firebase_admin/commit/bd2e84631a095bf50946069a85842140140ec9b3))
+
+
 ## 2025-01-27
 
 ### Changes

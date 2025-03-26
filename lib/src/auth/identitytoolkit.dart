@@ -54,7 +54,7 @@ class _MyApiRequester extends commons.ApiRequester {
         throw FirebaseAuthError.fromServerError(
           match?.group(1) ?? errorCode,
           match?.group(2),
-          e,
+          e.jsonResponse ?? e.toString(),
         );
       }
       throw FirebaseAuthError.internalError(json.encode(e.jsonResponse), e);

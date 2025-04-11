@@ -1,3 +1,7 @@
+## 0.3.0-dev.5
+
+ - **FIX**: deleting app no longer throws exception. ([e72b03d0](https://github.com/appsup-dart/firebase_admin/commit/e72b03d08538eb4af868c5c779d31dd14ed051d3))
+
 ## 0.3.0-dev.4
 
  - **FIX**: date time conversion from epoch. ([c98610b3](https://github.com/appsup-dart/firebase_admin/commit/c98610b33ffc946dfad02e49e9e01005c899164b))

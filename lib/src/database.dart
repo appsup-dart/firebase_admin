@@ -54,6 +54,6 @@ class Database implements FirebaseService {
 
   @override
   Future<void> delete() async {
-    await _database.app.delete();
+    await _database.delete();
   }
 }

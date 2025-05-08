@@ -90,7 +90,12 @@ class AuthRequestHandler {
 
     return ListUsersResult(
         users: response.users
-                ?.map((u) => UserRecord.fromJson(u.toJson()))
+                ?.map((u) {
+                  // Temporary workaround. See: https://github.com/google/googleapis.dart/issues/438#issuecomment-1241237427
+                  // Should be replaced with a proper `u.toJson()` call once they come up with a fix.
+                  final json = jsonDecode(jsonEncode(u));
+                  return UserRecord.fromJson(json);
+                })
                 .toList() ??
             [],
         pageToken: response.nextPageToken);

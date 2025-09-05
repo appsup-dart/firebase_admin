@@ -84,7 +84,7 @@ class Credentials {
   /// This credential can be used in the call to [initializeApp].
   /// [credentials] must be a path to a service account key JSON file or an
   /// object representing a service account key.
-  static Credential cert(credentials) {
+  static Credential cert(dynamic credentials) {
     throw UnimplementedError();
   }
 
@@ -92,7 +92,7 @@ class Credentials {
   /// admin access to Firebase services.
   ///
   /// This credential can be used in the call to [initializeApp].
-  static Credential refreshToken(refreshTokenPathOrObject) {
+  static Credential refreshToken(dynamic refreshTokenPathOrObject) {
     throw UnimplementedError();
   }
 

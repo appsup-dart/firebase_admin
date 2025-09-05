@@ -81,7 +81,7 @@ class ServiceAccountCredential extends _OpenIdCredential
       : certificate = Certificate.fromJson(json),
         super(json['client_id']!, null);
 
-  factory ServiceAccountCredential(serviceAccountPathOrObject) {
+  factory ServiceAccountCredential(dynamic serviceAccountPathOrObject) {
     {
       if (serviceAccountPathOrObject is Map) {
         return ServiceAccountCredential.fromJson(

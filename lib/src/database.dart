@@ -21,7 +21,7 @@ class _AuthTokenProvider implements AuthTokenProvider {
   @override
   Stream<Future<String>?> get onTokenChanged {
     var controller = StreamController<Future<String>?>();
-    var listener = (v) => controller.add(Future.value(v));
+    void listener(v) => controller.add(Future.value(v));
 
     controller.onListen = () {
       internals.addAuthTokenListener(listener);

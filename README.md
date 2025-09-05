@@ -1,4 +1,7 @@
 
+[![Ceasefire Now](https://badge.techforpalestine.org/default)](https://techforpalestine.org/learn-more)
+
+
 A pure Dart implementation of the Firebase admin sdk
 
 Currently, only supports admin methods for the following firebase services:

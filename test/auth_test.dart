@@ -17,32 +17,39 @@ Matcher throwsFirebaseError([String? code]) => throwsA(
 class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
   @override
   Future<String> getEmailActionLink(String requestType, String email,
-          {ActionCodeSettings? actionCodeSettings}) =>
+          {ActionCodeSettings? actionCodeSettings, String? tenantId}) =>
       super.noSuchMethod(
           Invocation.method(#getEmailActionLink, [requestType, email],
-              {#actionCodeSettings: actionCodeSettings}),
+              {#actionCodeSettings: actionCodeSettings, #tenantId: tenantId}),
           returnValue: Future.value(''));
 
   @override
-  Future<UserRecord> getAccountInfoByUid(String uid) =>
-      super.noSuchMethod(Invocation.method(#getAccountInfoByUid, [uid]),
-          returnValue: Future.value(UserRecord.fromJson({})));
-
-  @override
-  Future<UserRecord> getAccountInfoByEmail(String email) =>
-      super.noSuchMethod(Invocation.method(#getAccountInfoByEmail, [email]),
-          returnValue: Future.value(UserRecord.fromJson({})));
-
-  @override
-  Future<UserRecord> getAccountInfoByPhoneNumber(String phoneNumber) =>
+  Future<UserRecord> getAccountInfoByUid(String uid, {String? tenantId}) =>
       super.noSuchMethod(
-          Invocation.method(#getAccountInfoByPhoneNumber, [phoneNumber]),
+          Invocation.method(#getAccountInfoByUid, [uid], {#tenantId: tenantId}),
           returnValue: Future.value(UserRecord.fromJson({})));
 
   @override
-  Future<ListUsersResult> downloadAccount(int? maxResults, String? pageToken) =>
+  Future<UserRecord> getAccountInfoByEmail(String email, {String? tenantId}) =>
       super.noSuchMethod(
-          Invocation.method(#downloadAccount, [maxResults, pageToken]),
+          Invocation.method(
+              #getAccountInfoByEmail, [email], {#tenantId: tenantId}),
+          returnValue: Future.value(UserRecord.fromJson({})));
+
+  @override
+  Future<UserRecord> getAccountInfoByPhoneNumber(String phoneNumber,
+          {String? tenantId}) =>
+      super.noSuchMethod(
+          Invocation.method(#getAccountInfoByPhoneNumber, [phoneNumber],
+              {#tenantId: tenantId}),
+          returnValue: Future.value(UserRecord.fromJson({})));
+
+  @override
+  Future<ListUsersResult> downloadAccount(int? maxResults, String? pageToken,
+          {String? tenantId}) =>
+      super.noSuchMethod(
+          Invocation.method(
+              #downloadAccount, [maxResults, pageToken], {#tenantId: tenantId}),
           returnValue: Future.value(ListUsersResult(users: [])));
 
   @override
@@ -56,6 +63,7 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
     String? photoUrl,
     String? uid,
     List<CreateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
+    String? tenantId,
   }) =>
       super.noSuchMethod(
           Invocation.method(#createNewAccount, [], {
@@ -68,11 +76,12 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
             #photoUrl: photoUrl,
             #uid: uid,
             #multiFactorEnrolledFactors: multiFactorEnrolledFactors,
+            #tenantId: tenantId,
           }),
           returnValue: Future.value(''));
 
   @override
-  Future<void> deleteAccount(String uid) =>
+  Future<void> deleteAccount(String uid, {String? tenantId}) =>
       super.noSuchMethod(Invocation.method(#deleteAccount, [uid]),
           returnValue: Future.value());
 
@@ -87,6 +96,7 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
     String? phoneNumber,
     String? photoUrl,
     List<UpdateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
+    String? tenantId,
   }) =>
       super.noSuchMethod(
           Invocation.method(#updateExistingAccount, [
@@ -100,19 +110,23 @@ class MockAuthRequestHandler extends Mock implements AuthRequestHandler {
             #phoneNumber: phoneNumber,
             #photoUrl: photoUrl,
             #multiFactorEnrolledFactors: multiFactorEnrolledFactors,
+            #tenantId: tenantId,
           }),
           returnValue: Future.value(''));
 
   @override
   Future<String> setCustomUserClaims(
-          String uid, Map<String, dynamic>? customUserClaims) =>
+          String uid, Map<String, dynamic>? customUserClaims,
+          {String? tenantId}) =>
       super.noSuchMethod(
-          Invocation.method(#setCustomUserClaims, [uid, customUserClaims]),
+          Invocation.method(#setCustomUserClaims, [uid, customUserClaims],
+              {#tenantId: tenantId}),
           returnValue: Future.value(''));
 
   @override
-  Future<String> revokeRefreshTokens(String uid) =>
-      super.noSuchMethod(Invocation.method(#revokeRefreshTokens, [uid]),
+  Future<String> revokeRefreshTokens(String uid, {String? tenantId}) =>
+      super.noSuchMethod(
+          Invocation.method(#revokeRefreshTokens, [uid], {#tenantId: tenantId}),
           returnValue: Future.value(''));
 }
 

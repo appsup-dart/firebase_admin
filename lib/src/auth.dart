@@ -8,8 +8,10 @@ import 'service.dart';
 
 export 'auth/user_record.dart';
 
-/// The Firebase Auth service interface.
-class Auth implements FirebaseService {
+/// Base class for Auth and TenantAwareAuth.
+abstract class BaseAuth implements FirebaseService {
+  final String? _tenantId;
+
   @override
   final App app;
 
@@ -18,7 +20,7 @@ class Auth implements FirebaseService {
   final FirebaseTokenGenerator _tokenGenerator;
 
   /// Do not call this constructor directly. Instead, use app().auth.
-  Auth(this.app)
+  BaseAuth._(this.app, this._tenantId)
       : _authRequestHandler = AuthRequestHandler(app),
         _tokenVerifier = FirebaseTokenVerifier.factory(app),
         _tokenGenerator = FirebaseTokenGenerator.factory(app);
@@ -30,21 +32,24 @@ class Auth implements FirebaseService {
 
   /// Gets the user data for the user corresponding to a given [uid].
   Future<UserRecord> getUser(String uid) async {
-    return await _authRequestHandler.getAccountInfoByUid(uid);
+    return await _authRequestHandler.getAccountInfoByUid(uid,
+        tenantId: _tenantId);
   }
 
   /// Looks up the user identified by the provided email and returns a future
   /// that is fulfilled with a user record for the given user if that user is
   /// found.
   Future<UserRecord> getUserByEmail(String email) async {
-    return await _authRequestHandler.getAccountInfoByEmail(email);
+    return await _authRequestHandler.getAccountInfoByEmail(email,
+        tenantId: _tenantId);
   }
 
   /// Looks up the user identified by the provided phone number and returns a
   /// future that is fulfilled with a user record for the given user if that
   /// user is found.
   Future<UserRecord> getUserByPhoneNumber(String phoneNumber) async {
-    return await _authRequestHandler.getAccountInfoByPhoneNumber(phoneNumber);
+    return await _authRequestHandler.getAccountInfoByPhoneNumber(phoneNumber,
+        tenantId: _tenantId);
   }
 
   /// Retrieves a list of users (single batch only) with a size of [maxResults]
@@ -53,7 +58,8 @@ class Auth implements FirebaseService {
   /// This is used to retrieve all the users of a specified project in batches.
   Future<ListUsersResult> listUsers(
       [int? maxResults, String? pageToken]) async {
-    return await _authRequestHandler.downloadAccount(maxResults, pageToken);
+    return await _authRequestHandler.downloadAccount(maxResults, pageToken,
+        tenantId: _tenantId);
   }
 
   /// Creates a new user.
@@ -79,6 +85,7 @@ class Auth implements FirebaseService {
         photoUrl: photoUrl?.toString(),
         uid: uid,
         multiFactorEnrolledFactors: multiFactorEnrolledFactors,
+        tenantId: _tenantId,
       );
       // Return the corresponding user record.
       return await getUser(uid);
@@ -94,7 +101,7 @@ class Auth implements FirebaseService {
 
   /// Deletes an existing user.
   Future<void> deleteUser(String uid) async {
-    await _authRequestHandler.deleteAccount(uid);
+    await _authRequestHandler.deleteAccount(uid, tenantId: _tenantId);
   }
 
   /// Updates an existing user.
@@ -123,6 +130,7 @@ class Auth implements FirebaseService {
       phoneNumber: phoneNumber,
       photoUrl: photoUrl?.toString(),
       multiFactorEnrolledFactors: multiFactorEnrolledFactors,
+      tenantId: _tenantId,
     );
     // Return the corresponding user record.
     return await getUser(uid);
@@ -142,7 +150,8 @@ class Auth implements FirebaseService {
   /// Returns a promise containing `void`.
   Future<void> setCustomUserClaims(
       String uid, Map<String, dynamic> customUserClaims) async {
-    await _authRequestHandler.setCustomUserClaims(uid, customUserClaims);
+    await _authRequestHandler.setCustomUserClaims(uid, customUserClaims,
+        tenantId: _tenantId);
   }
 
   /// Revokes all refresh tokens for an existing user.
@@ -157,7 +166,7 @@ class Auth implements FirebaseService {
   /// ID tokens are revoked, use [Auth.verifyIdToken] where `checkRevoked` is set
   /// to `true`.
   Future<void> revokeRefreshTokens(String uid) async {
-    await _authRequestHandler.revokeRefreshTokens(uid);
+    await _authRequestHandler.revokeRefreshTokens(uid, tenantId: _tenantId);
   }
 
   /// Generates the out of band email action link for password reset flows for
@@ -165,7 +174,7 @@ class Auth implements FirebaseService {
   Future<String> generatePasswordResetLink(String email,
       [ActionCodeSettings? actionCodeSettings]) {
     return _authRequestHandler.getEmailActionLink('PASSWORD_RESET', email,
-        actionCodeSettings: actionCodeSettings);
+        actionCodeSettings: actionCodeSettings, tenantId: _tenantId);
   }
 
   /// Generates the out of band email action link for email verification flows
@@ -174,7 +183,7 @@ class Auth implements FirebaseService {
       [ActionCodeSettings? actionCodeSettings]) {
     return _authRequestHandler
         .getEmailActionLink('VERIFY_EMAIL', email,
-            actionCodeSettings: actionCodeSettings)
+            actionCodeSettings: actionCodeSettings, tenantId: _tenantId)
         .then((value) => value);
   }
 
@@ -184,7 +193,7 @@ class Auth implements FirebaseService {
       String email, ActionCodeSettings? actionCodeSettings) {
     return _authRequestHandler
         .getEmailActionLink('EMAIL_SIGNIN', email,
-            actionCodeSettings: actionCodeSettings)
+            actionCodeSettings: actionCodeSettings, tenantId: _tenantId)
         .then((value) => value);
   }
 
@@ -197,6 +206,10 @@ class Auth implements FirebaseService {
   Future<IdToken> verifyIdToken(String idToken,
       [bool checkRevoked = false]) async {
     var decodedIdToken = await _tokenVerifier.verifyJwt(idToken);
+    var tenant = decodedIdToken.claims['firebase']?['tenant'];
+    if (tenant != _tenantId) {
+      throw FirebaseAuthError.mismatchingTenantId();
+    }
     // Whether to check if the token was revoked.
     if (!checkRevoked) {
       return decodedIdToken;
@@ -212,7 +225,8 @@ class Auth implements FirebaseService {
   /// and payload.
   Future<String> createCustomToken(String uid,
       [Map<String, dynamic> developerClaims = const {}]) async {
-    return _tokenGenerator.createCustomToken(uid, developerClaims);
+    return _tokenGenerator.createCustomToken(uid, developerClaims,
+        tenantId: _tenantId);
   }
 
   /// Verifies the decoded Firebase issued JWT is not revoked. Returns a future
@@ -235,6 +249,33 @@ class Auth implements FirebaseService {
     // All checks above passed. Return the decoded token.
     return decodedIdToken;
   }
+}
+
+/// Auth service bound to the provided app.
+///
+/// An Auth instance can have multiple tenants. Use [tenantManager] to get a
+/// [TenantAwareAuth] instance for a specific tenant.
+class Auth extends BaseAuth {
+  Auth(App app) : super._(app, null);
+
+  /// Returns a [TenantManager] instance associated with the current project.
+  TenantManager tenantManager() => TenantManager._(this);
+}
+
+/// Manager for tenant related operations.
+class TenantManager {
+  final Auth _auth;
+
+  TenantManager._(this._auth);
+
+  /// Returns a [TenantAwareAuth] instance for the given tenant.
+  TenantAwareAuth authForTenant(String tenantId) =>
+      TenantAwareAuth._(_auth.app, tenantId);
+}
+
+/// Auth service bound to the provided app and tenant.
+class TenantAwareAuth extends BaseAuth {
+  TenantAwareAuth._(App app, String tenantId) : super._(app, tenantId);
 }
 
 /// Defines the required continue/state URL with optional Android and iOS

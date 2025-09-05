@@ -28,38 +28,42 @@ class AuthRequestHandler {
   static const maxDownloadAccountPageSize = 1000;
 
   /// Looks up a user by uid.
-  Future<UserRecord> getAccountInfoByUid(String uid) async {
+  Future<UserRecord> getAccountInfoByUid(String uid, {String? tenantId}) async {
     if (!validator.isUid(uid)) {
       throw FirebaseAuthError.invalidUid();
     }
-    return _getAccountInfo(localId: [uid]);
+    return _getAccountInfo(localId: [uid], tenantId: tenantId);
   }
 
   /// Looks up a user by email.
-  Future<UserRecord> getAccountInfoByEmail(String email) async {
+  Future<UserRecord> getAccountInfoByEmail(String email,
+      {String? tenantId}) async {
     if (!validator.isEmail(email)) {
       throw FirebaseAuthError.invalidEmail();
     }
-    return _getAccountInfo(email: [email]);
+    return _getAccountInfo(email: [email], tenantId: tenantId);
   }
 
   /// Looks up a user by phone number.
-  Future<UserRecord> getAccountInfoByPhoneNumber(String phoneNumber) async {
+  Future<UserRecord> getAccountInfoByPhoneNumber(String phoneNumber,
+      {String? tenantId}) async {
     if (!validator.isPhoneNumber(phoneNumber)) {
       throw FirebaseAuthError.invalidPhoneNumber();
     }
-    return _getAccountInfo(phoneNumber: [phoneNumber]);
+    return _getAccountInfo(phoneNumber: [phoneNumber], tenantId: tenantId);
   }
 
   Future<UserRecord> _getAccountInfo(
       {List<String>? phoneNumber,
       List<String>? email,
-      List<String>? localId}) async {
+      List<String>? localId,
+      String? tenantId}) async {
     var response = await identityToolkitApi.projects.accounts_1.lookup(
         GoogleCloudIdentitytoolkitV1GetAccountInfoRequest()
           ..phoneNumber = phoneNumber
           ..email = email
-          ..localId = localId,
+          ..localId = localId
+          ..tenantId = tenantId,
         projectId);
 
     if (response.users == null || response.users!.isEmpty) {
@@ -71,8 +75,8 @@ class AuthRequestHandler {
 
   /// Exports the users (single batch only) with a size of maxResults and
   /// starting from the offset as specified by pageToken.
-  Future<ListUsersResult> downloadAccount(
-      int? maxResults, String? pageToken) async {
+  Future<ListUsersResult> downloadAccount(int? maxResults, String? pageToken,
+      {String? tenantId}) async {
     // Validate next page token.
     if (pageToken != null && pageToken.isEmpty) {
       throw FirebaseAuthError.invalidPageToken();
@@ -85,8 +89,11 @@ class AuthRequestHandler {
           'Required "maxResults" must be a positive integer that does not exceed $maxDownloadAccountPageSize.');
     }
 
-    var response = await identityToolkitApi.projects.accounts_1
-        .batchGet(projectId, maxResults: maxResults, nextPageToken: pageToken);
+    var response = await identityToolkitApi.projects.accounts_1.batchGet(
+        projectId,
+        maxResults: maxResults,
+        nextPageToken: pageToken,
+        tenantId: tenantId);
 
     return ListUsersResult(
         users: response.users
@@ -107,6 +114,7 @@ class AuthRequestHandler {
     String? photoUrl,
     String? uid,
     List<CreateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
+    String? tenantId,
   }) async {
     _validateAccountParameters(
       uid: uid,
@@ -136,7 +144,8 @@ class AuthRequestHandler {
                   phoneInfo: v is CreatePhoneMultiFactorInfoRequest
                       ? v.phoneNumber
                       : null))
-              .toList(),
+              .toList()
+          ..tenantId = tenantId,
         projectId);
 
     // If the localId is not returned, then the request failed.
@@ -149,13 +158,15 @@ class AuthRequestHandler {
   }
 
   /// Deletes an account identified by a uid.
-  Future<void> deleteAccount(String uid) async {
+  Future<void> deleteAccount(String uid, {String? tenantId}) async {
     if (!validator.isUid(uid)) {
       throw FirebaseAuthError.invalidUid();
     }
 
     await identityToolkitApi.projects.accounts_1.delete(
-        GoogleCloudIdentitytoolkitV1DeleteAccountRequest()..localId = uid,
+        GoogleCloudIdentitytoolkitV1DeleteAccountRequest()
+          ..localId = uid
+          ..tenantId = tenantId,
         projectId);
   }
 
@@ -170,6 +181,7 @@ class AuthRequestHandler {
     String? phoneNumber,
     String? photoUrl,
     List<UpdateMultiFactorInfoRequest>? multiFactorEnrolledFactors,
+    String? tenantId,
   }) async {
     _validateAccountParameters(
       uid: uid,
@@ -203,7 +215,8 @@ class AuthRequestHandler {
                         phoneInfo: v is UpdatePhoneMultiFactorInfoRequest
                             ? v.phoneNumber
                             : null))
-                    .toList())));
+                    .toList()),
+        tenantId: tenantId));
   }
 
   void _validateAccountParameters({
@@ -259,7 +272,8 @@ class AuthRequestHandler {
   /// Sets additional developer claims on an existing user identified by
   /// provided UID.
   Future<String> setCustomUserClaims(
-      String uid, Map<String, dynamic>? customUserClaims) async {
+      String uid, Map<String, dynamic>? customUserClaims,
+      {String? tenantId}) async {
     // Validate user UID.
     if (!validator.isUid(uid)) {
       throw FirebaseAuthError.invalidUid();
@@ -269,7 +283,9 @@ class AuthRequestHandler {
     customUserClaims ??= {};
 
     return _setAccountInfo(GoogleCloudIdentitytoolkitV1SetAccountInfoRequest(
-        localId: uid, customAttributes: json.encode(customUserClaims)));
+        localId: uid,
+        customAttributes: json.encode(customUserClaims),
+        tenantId: tenantId));
   }
 
   /// Revokes all refresh tokens for the specified user identified by the uid
@@ -284,7 +300,7 @@ class AuthRequestHandler {
   /// tokens minted in the same second as the revocation will still be valid. If
   /// there is a chance that a token was minted in the last second, delay for 1
   /// second before revoking.
-  Future<String> revokeRefreshTokens(String uid) async {
+  Future<String> revokeRefreshTokens(String uid, {String? tenantId}) async {
     // Validate user UID.
     if (!validator.isUid(uid)) {
       throw FirebaseAuthError.invalidUid();
@@ -292,7 +308,8 @@ class AuthRequestHandler {
     return await _setAccountInfo(
         GoogleCloudIdentitytoolkitV1SetAccountInfoRequest(
             localId: uid,
-            validSince: '${clock.now().millisecondsSinceEpoch ~/ 1000}'));
+            validSince: '${clock.now().millisecondsSinceEpoch ~/ 1000}',
+            tenantId: tenantId));
   }
 
   Future<String> _setAccountInfo(
@@ -322,7 +339,7 @@ class AuthRequestHandler {
   /// handled by a mobile app and the additional state information to be passed
   /// in the deep link, etc. Required when requestType == 'EMAIL_SIGNIN'
   Future<String> getEmailActionLink(String requestType, String email,
-      {ActionCodeSettings? actionCodeSettings}) async {
+      {ActionCodeSettings? actionCodeSettings, String? tenantId}) async {
     if (!validator.isEmail(email)) {
       throw FirebaseAuthError.invalidEmail();
     }
@@ -356,7 +373,8 @@ class AuthRequestHandler {
           ..androidPackageName = actionCodeSettings?.androidPackageName
           ..androidInstallApp = actionCodeSettings?.androidInstallApp
           ..androidMinimumVersion = actionCodeSettings?.androidMinimumVersion
-          ..androidInstallApp = actionCodeSettings?.androidInstallApp,
+          ..androidInstallApp = actionCodeSettings?.androidInstallApp
+          ..tenantId = tenantId,
         projectId);
 
     // If the oobLink is not returned, then the request failed.

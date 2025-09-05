@@ -45,8 +45,9 @@ class FirebaseTokenGenerator {
   static const firebaseAudience =
       'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit';
 
-  Map<String, dynamic> _createCustomTokenPayload(String uid,
-      Map<String, dynamic> developerClaims, String serviceAccountId) {
+  Map<String, dynamic> _createCustomTokenPayload(
+      String uid, Map<String, dynamic> developerClaims, String serviceAccountId,
+      {String? tenantId}) {
     if (!validator.isUid(uid)) {
       throw FirebaseAuthError.invalidArgument(
           'First argument to createCustomToken() must be a non-empty string uid.');
@@ -68,19 +69,22 @@ class FirebaseTokenGenerator {
       'sub': serviceAccountId,
       'uid': uid,
       'claims': developerClaims,
+      if (tenantId != null) 'tenant_id': tenantId,
     };
   }
 
   /// Creates a new Firebase Auth Custom token.
   Future<String> createCustomToken(
-      String uid, Map<String, dynamic> developerClaims) async {
+      String uid, Map<String, dynamic> developerClaims,
+      {String? tenantId}) async {
     var credential = app.options.credential;
     // If the SDK was initialized with a service account, use it to sign bytes.
     if (credential is ServiceAccountCredential &&
         credential.certificate.projectId == app.options.projectId) {
       var certificate = credential.certificate;
       var claims = _createCustomTokenPayload(
-          uid, developerClaims, certificate.clientEmail);
+          uid, developerClaims, certificate.clientEmail,
+          tenantId: tenantId);
 
       var builder = JsonWebSignatureBuilder()
         ..jsonContent = claims
@@ -106,8 +110,9 @@ class FirebaseTokenGenerator {
     }
 
     if (serviceAccountId != null) {
-      var claims =
-          _createCustomTokenPayload(uid, developerClaims, serviceAccountId);
+      var claims = _createCustomTokenPayload(
+          uid, developerClaims, serviceAccountId,
+          tenantId: tenantId);
       var client = iamcredentials.IAMCredentialsApi(AuthorizedHttpClient(app));
 
       var r = await client.projects.serviceAccounts.signJwt(

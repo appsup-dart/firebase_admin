@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-09-05
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`firebase_admin` - `v0.3.1`](#firebase_admin---v031)
+
+---
+
+#### `firebase_admin` - `v0.3.1`
+
+ - **FIX**: error on listlistUsers throws "Cannot be converted to a deep immutable object" [#38](https://github.com/appsup-dart/firebase_admin/issues/38). ([fae33870](https://github.com/appsup-dart/firebase_admin/commit/fae33870f9f2b48a43ba63b0864f6ffebebda5e2))
+ - **FEAT**: implement TenantAwareAuth. ([2934bd8d](https://github.com/appsup-dart/firebase_admin/commit/2934bd8d7bd0249a402732132f7c07d5f1713ee1))
+
+## 0.3.1
+
+ - **FIX**: error on listlistUsers throws "Cannot be converted to a deep immutable object" [#38](https://github.com/appsup-dart/firebase_admin/issues/38). ([fae33870](https://github.com/appsup-dart/firebase_admin/commit/fae33870f9f2b48a43ba63b0864f6ffebebda5e2))
+ - **FEAT**: implement TenantAwareAuth. ([2934bd8d](https://github.com/appsup-dart/firebase_admin/commit/2934bd8d7bd0249a402732132f7c07d5f1713ee1))
+
+
 ## 2025-03-26
 
 ### Changes

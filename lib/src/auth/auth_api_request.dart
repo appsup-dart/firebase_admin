@@ -66,7 +66,7 @@ class AuthRequestHandler {
       throw FirebaseAuthError.userNotFound();
     }
 
-    return UserRecord.fromJson(json.decode(json.encode(response.users!.first)));
+    return UserRecord.fromJson(_deepToJson(response.users!.first));
   }
 
   /// Exports the users (single batch only) with a size of maxResults and
@@ -90,7 +90,7 @@ class AuthRequestHandler {
 
     return ListUsersResult(
         users: response.users
-                ?.map((u) => UserRecord.fromJson(u.toJson()))
+                ?.map((u) => UserRecord.fromJson(_deepToJson(u)))
                 .toList() ??
             [],
         pageToken: response.nextPageToken);
@@ -367,5 +367,22 @@ class AuthRequestHandler {
 
     // Return the link.
     return response.oobLink!;
+  }
+}
+
+dynamic _deepToJson(dynamic v) {
+  if (v is Map<String, dynamic>) {
+    return v.map<String, dynamic>((k, v) => MapEntry(k, _deepToJson(v)));
+  }
+  if (v is List<dynamic>) {
+    return v.map<dynamic>((v) => _deepToJson(v)).toList();
+  }
+  if (v is num || v is String || v is bool) {
+    return v;
+  }
+  try {
+    return _deepToJson(v.toJson());
+  } on NoSuchMethodError {
+    return v;
   }
 }

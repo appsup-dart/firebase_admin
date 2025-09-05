@@ -22,7 +22,7 @@ dependencies:
   firebaseapis: ">=0.1.2 <0.3.0"
   snapshot: ^0.2.5
   _discoveryapis_commons: ^1.0.4
-  googleapis: ">=0.9.2 <14.0.0"
+  googleapis: ">=0.9.2 <15.0.0"
 
 dev_dependencies:
   test: ^1.17.8

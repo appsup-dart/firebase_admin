@@ -50,6 +50,9 @@ class App {
   /// Gets [Storage] service for this application.
   Storage storage() => _getService(() => Storage(this));
 
+  /// Gets [Firestore] service for this application.
+  Firestore firestore() => _getService(() => Firestore(this));
+
   /// Renders this app unusable and frees the resources of all associated
   /// services.
   Future<void> delete() async {

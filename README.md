@@ -8,6 +8,7 @@ Currently, only supports admin methods for the following firebase services:
 
 * authentication
 * realtime database
+* cloud firestore
 
 ## Example using service account
 

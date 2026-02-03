@@ -7,6 +7,7 @@ import 'package:firebase_admin/src/credential.dart';
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/testing.dart';
 import 'package:firebase_admin/src/utils/api_request.dart';
+import 'package:firebase_admin/src/utils/error.dart';
 import 'package:firebase_dart/firebase_dart.dart';
 import 'package:jose/jose.dart';
 
@@ -215,11 +216,16 @@ class _BackendConnection {
           case 'POST':
             switch (body['requestType']) {
               case 'EMAIL_SIGNIN':
+                BackendUser user;
                 try {
-                  await backend.authBackend.getUserByEmail(body['email']);
+                  user =
+                      await backend.authBackend.getUserByEmail(body['email']);
                 } catch (e) {
-                  await backend.authBackend
+                  user = await backend.authBackend
                       .createUser(email: body['email'], password: null);
+                }
+                if (user.disabled ?? false) {
+                  throw FirebaseAuthException.userDisabled();
                 }
             }
 
@@ -267,10 +273,12 @@ void _setUpMockHttpClient() {
 }
 
 Map<String, dynamic> _errorToServerResponse(FirebaseAuthException e) {
+  final serverCode = serverCodeForAuthError(e.code) ?? 'INTERNAL_ERROR';
+
   return {
     'error': {
-      'code': e.code,
-      'message': e.message,
+      'code': 400,
+      'message': '$serverCode: ${e.message ?? e.code}',
     }
   };
 }

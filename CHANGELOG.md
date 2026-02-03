@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-02-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`firebase_admin` - `v0.3.1+1`](#firebase_admin---v0311)
+
+---
+
+#### `firebase_admin` - `v0.3.1+1`
+
+ - **FIX**: handle more error codes from server. ([5cc31df1](https://github.com/appsup-dart/firebase_admin/commit/5cc31df13ec7b53e2681384b8eda75ecc394ecba))
+
+## 0.3.1+1
+
+ - **FIX**: handle more error codes from server. ([5cc31df1](https://github.com/appsup-dart/firebase_admin/commit/5cc31df13ec7b53e2681384b8eda75ecc394ecba))
+
+
 ## 2025-09-05
 
 ### Changes

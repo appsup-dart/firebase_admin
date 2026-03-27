@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-03-27
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`firebase_admin` - `v0.3.1+2`](#firebase_admin---v0312)
+
+---
+
+#### `firebase_admin` - `v0.3.1+2`
+
+ - **REFACTOR**: upgrade jose dependency. ([f43aa123](https://github.com/appsup-dart/firebase_admin/commit/f43aa12338f458e9863794f94bce4dbac75f27a7))
+
+## 0.3.1+2
+
+ - **REFACTOR**: upgrade jose dependency. ([f43aa123](https://github.com/appsup-dart/firebase_admin/commit/f43aa12338f458e9863794f94bce4dbac75f27a7))
+
+
 ## 2026-02-03
 
 ### Changes

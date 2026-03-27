@@ -9,7 +9,7 @@ environment:
 dependencies:
   clock: ^1.1.0
   x509: ^0.2.2
-  jose: ^0.3.2
+  jose: ^0.3.5+1
   dotenv: ^4.0.0
   openid_client: ^0.4.3
   firebase_dart: ^1.0.10

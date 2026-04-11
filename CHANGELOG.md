@@ -1,78 +1,13 @@
-# Change Log
-
-All notable changes to this project will be documented in this file.
-See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
-
-## 2026-03-27
-
-### Changes
-
----
-
-Packages with breaking changes:
-
- - There are no breaking changes in this release.
-
-Packages with other changes:
-
- - [`firebase_admin` - `v0.3.1+2`](#firebase_admin---v0312)
-
----
-
-#### `firebase_admin` - `v0.3.1+2`
-
- - **REFACTOR**: upgrade jose dependency. ([f43aa123](https://github.com/appsup-dart/firebase_admin/commit/f43aa12338f458e9863794f94bce4dbac75f27a7))
 
 ## 0.3.1+2
 
  - **REFACTOR**: upgrade jose dependency. ([f43aa123](https://github.com/appsup-dart/firebase_admin/commit/f43aa12338f458e9863794f94bce4dbac75f27a7))
 
 
-## 2026-02-03
-
-### Changes
-
----
-
-Packages with breaking changes:
-
- - There are no breaking changes in this release.
-
-Packages with other changes:
-
- - [`firebase_admin` - `v0.3.1+1`](#firebase_admin---v0311)
-
----
-
-#### `firebase_admin` - `v0.3.1+1`
-
- - **FIX**: handle more error codes from server. ([5cc31df1](https://github.com/appsup-dart/firebase_admin/commit/5cc31df13ec7b53e2681384b8eda75ecc394ecba))
-
 ## 0.3.1+1
 
  - **FIX**: handle more error codes from server. ([5cc31df1](https://github.com/appsup-dart/firebase_admin/commit/5cc31df13ec7b53e2681384b8eda75ecc394ecba))
 
-
-## 2025-09-05
-
-### Changes
-
----
-
-Packages with breaking changes:
-
- - There are no breaking changes in this release.
-
-Packages with other changes:
-
- - [`firebase_admin` - `v0.3.1`](#firebase_admin---v031)
-
----
-
-#### `firebase_admin` - `v0.3.1`
-
- - **FIX**: error on listlistUsers throws "Cannot be converted to a deep immutable object" [#38](https://github.com/appsup-dart/firebase_admin/issues/38). ([fae33870](https://github.com/appsup-dart/firebase_admin/commit/fae33870f9f2b48a43ba63b0864f6ffebebda5e2))
- - **FEAT**: implement TenantAwareAuth. ([2934bd8d](https://github.com/appsup-dart/firebase_admin/commit/2934bd8d7bd0249a402732132f7c07d5f1713ee1))
 
 ## 0.3.1
 
@@ -80,50 +15,10 @@ Packages with other changes:
  - **FEAT**: implement TenantAwareAuth. ([2934bd8d](https://github.com/appsup-dart/firebase_admin/commit/2934bd8d7bd0249a402732132f7c07d5f1713ee1))
 
 
-## 2025-03-26
-
-### Changes
-
----
-
-Packages with breaking changes:
-
- - There are no breaking changes in this release.
-
-Packages with other changes:
-
- - [`firebase_admin` - `v0.3.0+2`](#firebase_admin---v0302)
-
----
-
-#### `firebase_admin` - `v0.3.0+2`
-
- - **FIX**: Converting object to an encodable object failed: Instance of 'DetailedApiRequestError'. ([bd2e8463](https://github.com/appsup-dart/firebase_admin/commit/bd2e84631a095bf50946069a85842140140ec9b3))
-
 ## 0.3.0+2
 
  - **FIX**: Converting object to an encodable object failed: Instance of 'DetailedApiRequestError'. ([bd2e8463](https://github.com/appsup-dart/firebase_admin/commit/bd2e84631a095bf50946069a85842140140ec9b3))
 
-
-## 2025-01-27
-
-### Changes
-
----
-
-Packages with breaking changes:
-
- - There are no breaking changes in this release.
-
-Packages with other changes:
-
- - [`firebase_admin` - `v0.3.0+1`](#firebase_admin---v0301)
-
----
-
-#### `firebase_admin` - `v0.3.0+1`
-
- - **FIX**: login showing error page, unregistered scope: profile. ([b0c33c68](https://github.com/appsup-dart/firebase_admin/commit/b0c33c6852419663eb386f09ec397b52b7f314de))
 
 ## 0.3.0+1
 

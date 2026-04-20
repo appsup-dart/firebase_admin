@@ -1,3 +1,7 @@
+## 0.3.1+4
+
+ - **REFACTOR**: support firebase_dart 2.0.0. ([089a7768](https://github.com/appsup-dart/firebase_admin/commit/089a7768ebd5a490ea51f86b3db9905be8563251))
+
 ## 0.3.1+3
 
  - **REFACTOR**(deps): require gcloud ^0.9.0 and googleapis >=15.0.0 <17.0.0. ([d13eabf5](https://github.com/appsup-dart/firebase_admin/commit/d13eabf584ad80978b144045a182c3b3243280a2))

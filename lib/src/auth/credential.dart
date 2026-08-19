@@ -47,8 +47,9 @@ class Certificate {
     }
 
     String intToBase64(BigInt v) {
-      return bytesToBase64(v
-          .toRadixString(16)
+      var s = v.toRadixString(16);
+      if (s.length % 2 != 0) s = '0$s';
+      return bytesToBase64(s
           .replaceAllMapped(RegExp('[0-9a-f]{2}'), (m) => '${m.group(0)},')
           .split(',')
           .where((v) => v.isNotEmpty)

@@ -1,3 +1,7 @@
+## 0.3.1+5
+
+ - **FIX**: failing auth for some service accounts. ([823ddc70](https://github.com/appsup-dart/firebase_admin/commit/823ddc70f07e753e0a6a5fcd0bb9d5bbf43fbeed))
+
 ## 0.3.1+4
 
  - **REFACTOR**: support firebase_dart 2.0.0. ([089a7768](https://github.com/appsup-dart/firebase_admin/commit/089a7768ebd5a490ea51f86b3db9905be8563251))

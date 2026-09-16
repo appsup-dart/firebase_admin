@@ -13,6 +13,7 @@ import 'resources/mocks.dart' as mocks;
 import 'package:fake_async/fake_async.dart';
 
 import 'package:firebase_admin/src/app.dart';
+import 'package:openid_client/openid_client.dart' as openid;
 
 Matcher throwsAppError([String? message]) =>
     throwsA(TypeMatcher<FirebaseAppError>()
@@ -398,6 +399,32 @@ void main() {
         var token2 = await mockApp.internals.getToken();
         expect(token1.accessToken, isNot(token2.accessToken));
         expect(n, 2);
+      });
+
+      test('does not wrap token listener exceptions as invalid-credential',
+          () async {
+        mockApp.internals.addAuthTokenListener((_) {
+          throw StateError('listener failed');
+        });
+        await expectLater(
+            mockApp.internals.getToken(true), throwsA(isA<StateError>()));
+      });
+
+      test('includes OpenID error code and description in token fetch errors',
+          () async {
+        await admin.app(mocks.appName)!.delete();
+        var mockApp =
+            admin.initializeApp(AppOptions(credential: MockCredential(() {
+          throw openid.OpenIdException('invalid_grant', 'account not found');
+        })), mocks.appName);
+
+        await expectLater(
+            mockApp.internals.getToken(true),
+            throwsA(isA<FirebaseAppError>()
+                .having((e) => e.code, 'code', 'app/invalid-credential')
+                .having((e) => e.message, 'message', contains('invalid_grant'))
+                .having((e) => e.message, 'message',
+                    contains('account not found'))));
       });
 
       test('proactively refreshes the token five minutes setUp it expires', () {

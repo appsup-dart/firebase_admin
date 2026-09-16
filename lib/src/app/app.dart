@@ -1,9 +1,10 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:firebase_admin/src/utils/error.dart';
+import 'package:openid_client/openid_client.dart' as openid;
 
 import '../credential.dart';
-import 'package:clock/clock.dart';
 
 class FirebaseAppInternals {
   final Credential credential;
@@ -16,6 +17,12 @@ class FirebaseAppInternals {
   final List<void Function(String token)> _tokenListeners = [];
 
   static const _expirySkew = Duration(seconds: 60);
+
+  /// Creates the proactive refresh timer. Defaults to the current-zone [Timer]
+  /// so `fake_async` tests keep working. Assign `Zone.root.createTimer` if the
+  /// refresh should outlive the zone that first called [getToken].
+  static Timer Function(Duration duration, void Function() callback)
+      createTimer = (duration, callback) => Timer(duration, callback);
 
   FirebaseAppInternals(this.credential);
   bool get isDeleted => _isDeleted;
@@ -54,7 +61,29 @@ class FirebaseAppInternals {
       _isRefreshing = true;
       return _cachedTokenFuture = Future.microtask(() async {
         try {
-          var token = await credential.getAccessToken();
+          AccessToken token;
+          try {
+            token = await credential.getAccessToken();
+          } on FirebaseException {
+            rethrow;
+          } catch (error) {
+            var errorMessage =
+                'Credential implementation provided to initializeApp() via the '
+                '"credential" property failed to fetch a valid Google OAuth2 access token with the '
+                'following error: "${_describeTokenFetchError(error)}".';
+
+            if (errorMessage.contains('invalid_grant')) {
+              errorMessage +=
+                  ' There are two likely causes: (1) your server time is not properly '
+                  'synced or (2) your certificate key file has been revoked. To solve (1), re-sync the '
+                  'time on your server. To solve (2), make sure the key ID for your key file is still '
+                  'present at https://console.firebase.google.com/iam-admin/serviceaccounts/project. If '
+                  'not, generate a key file at '
+                  'https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk.';
+            }
+
+            throw FirebaseAppError.invalidCredential(errorMessage);
+          }
 
           var hasAccessTokenChanged =
               _cachedToken?.accessToken != token.accessToken;
@@ -96,25 +125,24 @@ class FirebaseAppInternals {
         } finally {
           _isRefreshing = false;
         }
-      }).catchError((error, tr) {
-        var errorMessage =
-            'Credential implementation provided to initializeApp() via the '
-            '"credential" property failed to fetch a valid Google OAuth2 access token with the '
-            'following error: "${error is FirebaseException ? error.message : error}".';
-
-        if (errorMessage.contains('invalid_grant')) {
-          errorMessage +=
-              ' There are two likely causes: (1) your server time is not properly '
-              'synced or (2) your certificate key file has been revoked. To solve (1), re-sync the '
-              'time on your server. To solve (2), make sure the key ID for your key file is still '
-              'present at https://console.firebase.google.com/iam-admin/serviceaccounts/project. If '
-              'not, generate a key file at '
-              'https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk.';
-        }
-
-        throw FirebaseAppError.invalidCredential(errorMessage);
-      }, test: (e) => e is! FirebaseException);
+      });
     }
+  }
+
+  static String _describeTokenFetchError(Object error) {
+    if (error is FirebaseException) return error.message;
+    if (error is openid.OpenIdException) {
+      var code = error.code;
+      var message = error.message;
+      if (code != null &&
+          code.isNotEmpty &&
+          message != null &&
+          message.isNotEmpty) {
+        return '$code: $message';
+      }
+      return message ?? code ?? '$error';
+    }
+    return '$error';
   }
 
   /// Adds a listener that is called each time a token changes.
@@ -140,7 +168,7 @@ class FirebaseAppInternals {
 
   /// Establishes timeout to refresh the Google OAuth2 access token used by the SDK.
   void _setTokenRefreshTimeout(Duration delay, int numRetries) {
-    _tokenRefreshTimeout = Timer(delay, () async {
+    _tokenRefreshTimeout = createTimer(delay, () async {
       try {
         await getToken(/* forceRefresh */ true);
       } catch (error) {

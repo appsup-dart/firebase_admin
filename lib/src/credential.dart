@@ -3,10 +3,11 @@ import 'dart:io';
 
 import 'package:firebase_admin/src/utils/env.dart';
 import 'package:openid_client/openid_client_io.dart';
+import 'package:path/path.dart' as path;
 
 import 'auth/credential.dart';
 import 'utils/error.dart';
-import 'package:path/path.dart' as path;
+import 'utils/http_client.dart';
 
 void setApplicationDefaultCredential(Credential? credential) {
   Credentials._globalAppDefaultCred = credential;
@@ -22,13 +23,15 @@ class Credentials {
 
   static Future<Credential> login(
       {String? clientId, String? clientSecret}) async {
-    var issuer = await Issuer.discover(Issuer.google);
+    var issuer =
+        await Issuer.discover(Issuer.google, httpClient: resolveHttpClient());
 
     var client = Client(
       issuer,
       clientId ?? String.fromEnvironment('FIREBASE_CLIENT_ID'),
       clientSecret:
           clientSecret ?? String.fromEnvironment('FIREBASE_CLIENT_SECRET'),
+      httpClient: resolveHttpClient(),
     );
 
     // create an authenticator

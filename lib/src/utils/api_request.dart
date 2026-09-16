@@ -1,15 +1,17 @@
 import 'package:http/http.dart';
 
 import '../app.dart';
+import 'http_client.dart' as http_client;
 
 class AuthorizedHttpClient extends BaseClient {
   final App app;
 
   final Duration? timeout;
 
-  final Client client = httpClientFactory();
+  final Client client;
 
-  AuthorizedHttpClient(this.app, [this.timeout]);
+  AuthorizedHttpClient(this.app, [this.timeout])
+      : client = http_client.resolveHttpClient();
 
   @override
   Future<StreamedResponse> send(BaseRequest request) async {
@@ -22,5 +24,8 @@ class AuthorizedHttpClient extends BaseClient {
     return r;
   }
 
-  static Client Function() httpClientFactory = () => Client();
+  static Client Function() get httpClientFactory =>
+      http_client.httpClientFactory;
+  static set httpClientFactory(Client Function() factory) =>
+      http_client.httpClientFactory = factory;
 }

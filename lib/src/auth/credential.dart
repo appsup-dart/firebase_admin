@@ -1,12 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
-import 'package:x509/x509.dart';
-import '../utils/error.dart';
-import 'package:jose/jose.dart';
-import '../credential.dart';
+import 'dart:io';
+
 import 'package:clock/clock.dart';
+import 'package:jose/jose.dart';
 import 'package:openid_client/openid_client.dart' as openid;
+import 'package:x509/x509.dart';
+
+import '../credential.dart';
+import '../utils/error.dart';
+import '../utils/http_client.dart';
 
 String _openidClientId(Map<String, dynamic> json) {
   var clientId = json['client_id'];
@@ -150,8 +153,11 @@ abstract class _OpenIdCredential implements Credential {
 
   @override
   Future<AccessToken> getAccessToken() async {
-    var issuer = await openid.Issuer.discover(openid.Issuer.google);
-    var client = openid.Client(issuer, clientId, clientSecret: clientSecret);
+    var httpClient = resolveHttpClient();
+    var issuer = await openid.Issuer.discover(openid.Issuer.google,
+        httpClient: httpClient);
+    var client = openid.Client(issuer, clientId,
+        clientSecret: clientSecret, httpClient: httpClient);
     var response = await (await createCredential(client)).getTokenResponse();
     var accessToken = response.accessToken?.replaceAll(RegExp(r'\.+$'), '');
     if (accessToken == null || accessToken.isEmpty) {

@@ -110,6 +110,7 @@ class ServiceAccountCredential extends _OpenIdCredential
   }
 
   String _createAuthJwt() {
+    final iat = clock.now();
     final claims = {
       'scope': [
         'https://www.googleapis.com/auth/cloud-platform',
@@ -118,10 +119,11 @@ class ServiceAccountCredential extends _OpenIdCredential
         'https://www.googleapis.com/auth/identitytoolkit',
         'https://www.googleapis.com/auth/userinfo.email',
       ].join(' '),
-      'aud': 'https://accounts.google.com/o/oauth2/token',
+      'aud': 'https://oauth2.googleapis.com/token',
       'iss': certificate.clientEmail,
-      'iat': clock.now().millisecondsSinceEpoch ~/ 1000,
-      'exp': clock.now().add(Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000
+      'sub': certificate.clientEmail,
+      'iat': iat.millisecondsSinceEpoch ~/ 1000,
+      'exp': iat.add(Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000
     };
 
     var builder = JsonWebSignatureBuilder()
@@ -151,9 +153,22 @@ abstract class _OpenIdCredential implements Credential {
     var issuer = await openid.Issuer.discover(openid.Issuer.google);
     var client = openid.Client(issuer, clientId, clientSecret: clientSecret);
     var response = await (await createCredential(client)).getTokenResponse();
+    var accessToken = response.accessToken?.replaceAll(RegExp(r'\.+$'), '');
+    if (accessToken == null || accessToken.isEmpty) {
+      throw FirebaseAppError.invalidCredential(
+        'Failed to fetch a valid Google OAuth2 access token: missing "access_token".',
+      );
+    }
+    if (response.expiresAt == null) {
+      throw FirebaseAppError.invalidCredential(
+        'Failed to fetch a valid Google OAuth2 access token: missing "expires_in".',
+      );
+    }
     return _OpenIdAccessToken(openid.TokenResponse.fromJson({
       ...response.toJson(),
-      'access_token': response.accessToken?.replaceAll(RegExp(r'\.*$'), '')
+      // firebase_dart classifies RTDB tokens by '.' segment count; extra
+      // trailing dots would be treated as a database secret instead of gauth.
+      'access_token': accessToken,
     }));
   }
 }

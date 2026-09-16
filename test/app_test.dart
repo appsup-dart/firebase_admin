@@ -368,6 +368,38 @@ void main() {
         expect(token1, isNot(token2));
       });
 
+      test('concurrent getToken calls share one in-flight refresh', () async {
+        await admin.app(mocks.appName)!.delete();
+        var mockApp =
+            admin.initializeApp(AppOptions(credential: MockCredential(() {
+          return MockAccessToken(
+              accessToken: 'shared', expiresIn: Duration(hours: 1));
+        })), mocks.appName);
+
+        var futures = [
+          mockApp.internals.getToken(true),
+          mockApp.internals.getToken(true),
+        ];
+        await Future.wait(futures);
+        expect(MockCredentialMixin.getCallCount(mockApp), 1);
+      });
+
+      test('refreshes a token that expires within 60 seconds', () async {
+        await admin.app(mocks.appName)!.delete();
+        var n = 0;
+        var mockApp =
+            admin.initializeApp(AppOptions(credential: MockCredential(() {
+          n++;
+          return MockAccessToken(
+              accessToken: 't$n', expiresIn: Duration(seconds: 30));
+        })), mocks.appName);
+
+        var token1 = await mockApp.internals.getToken();
+        var token2 = await mockApp.internals.getToken();
+        expect(token1.accessToken, isNot(token2.accessToken));
+        expect(n, 2);
+      });
+
       test('proactively refreshes the token five minutes setUp it expires', () {
         testFakeAsync((fake) async {
           // Force a token refresh.
@@ -503,16 +535,12 @@ void main() {
           // Ensure the proactive refresh failed.
           expect(token, originalToken);
 
-          // Forward the clock to expiry.
+          // Forward the clock to expiry. getToken() would now force a refresh
+          // because of the 60s expiry skew; the proactive timer must not.
           fake.elapse(Duration(minutes: 1));
-
-          token = await mockApp.internals.getToken();
 
           // Ensure the token was not attempted to be proactively refreshed a sixth time.
           expect(callCount, 5);
-
-          // Ensure the token has never been refresh.
-          expect(token, originalToken);
         });
       });
 

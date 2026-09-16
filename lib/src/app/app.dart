@@ -11,8 +11,11 @@ class FirebaseAppInternals {
 
   AccessToken? _cachedToken;
   Future<AccessToken>? _cachedTokenFuture;
+  bool _isRefreshing = false;
   Timer? _tokenRefreshTimeout;
   final List<void Function(String token)> _tokenListeners = [];
+
+  static const _expirySkew = Duration(seconds: 60);
 
   FirebaseAppInternals(this.credential);
   bool get isDeleted => _isDeleted;
@@ -20,7 +23,11 @@ class FirebaseAppInternals {
   /// Gets an auth token for the associated app.
   Future<AccessToken> getToken([bool forceRefresh = false]) {
     var expired = _cachedToken == null ||
-        _cachedToken!.expirationTime.isBefore(clock.now());
+        _cachedToken!.expirationTime.isBefore(clock.now().add(_expirySkew));
+
+    if (_isRefreshing && _cachedTokenFuture != null) {
+      return _cachedTokenFuture!;
+    }
 
     if (_cachedTokenFuture != null && !forceRefresh && !expired) {
       return _cachedTokenFuture!.catchError((error) {
@@ -44,46 +51,51 @@ class FirebaseAppInternals {
 
       // this.credential_ may be an external class; resolving it in a future helps us
       // protect against exceptions and upgrades the result to a future in all cases.
+      _isRefreshing = true;
       return _cachedTokenFuture = Future.microtask(() async {
-        var token = await credential.getAccessToken();
+        try {
+          var token = await credential.getAccessToken();
 
-        var hasAccessTokenChanged =
-            _cachedToken?.accessToken != token.accessToken;
-        var hasExpirationChanged =
-            _cachedToken?.expirationTime != token.expirationTime;
-        if (_cachedToken == null ||
-            hasAccessTokenChanged ||
-            hasExpirationChanged) {
-          _cachedToken = token;
-          for (var listener in _tokenListeners) {
-            listener(token.accessToken);
+          var hasAccessTokenChanged =
+              _cachedToken?.accessToken != token.accessToken;
+          var hasExpirationChanged =
+              _cachedToken?.expirationTime != token.expirationTime;
+          if (_cachedToken == null ||
+              hasAccessTokenChanged ||
+              hasExpirationChanged) {
+            _cachedToken = token;
+            for (var listener in _tokenListeners) {
+              listener(token.accessToken);
+            }
           }
+
+          var expiresIn = token.expirationTime.difference(clock.now());
+          // Establish a timeout to proactively refresh the token every minute starting at five
+          // minutes before it expires. Once a token refresh succeeds, no further retries are
+          // needed; if it fails, retry every minute until the token expires (resulting in a total
+          // of four retries: at 4, 3, 2, and 1 minutes).
+          var refreshTime = expiresIn - Duration(minutes: 5);
+          var numRetries = 4;
+
+          // In the rare cases the token is short-lived (that is, it expires in less than five
+          // minutes from when it was fetched), establish the timeout to refresh it after the
+          // current minute ends and update the number of retries that should be attempted before
+          // the token expires.
+          if (refreshTime.isNegative) {
+            refreshTime = Duration(seconds: expiresIn.inSeconds % 60);
+            numRetries = expiresIn.inMinutes - 1;
+          }
+
+          // The token refresh timeout keeps the Node.js process alive, so only create it if this
+          // instance has not already been deleted.
+          if (numRetries != 0 && !_isDeleted) {
+            _setTokenRefreshTimeout(refreshTime, numRetries);
+          }
+
+          return token;
+        } finally {
+          _isRefreshing = false;
         }
-
-        var expiresIn = token.expirationTime.difference(clock.now());
-        // Establish a timeout to proactively refresh the token every minute starting at five
-        // minutes before it expires. Once a token refresh succeeds, no further retries are
-        // needed; if it fails, retry every minute until the token expires (resulting in a total
-        // of four retries: at 4, 3, 2, and 1 minutes).
-        var refreshTime = expiresIn - Duration(minutes: 5);
-        var numRetries = 4;
-
-        // In the rare cases the token is short-lived (that is, it expires in less than five
-        // minutes from when it was fetched), establish the timeout to refresh it after the
-        // current minute ends and update the number of retries that should be attempted before
-        // the token expires.
-        if (refreshTime.isNegative) {
-          refreshTime = Duration(seconds: expiresIn.inSeconds % 60);
-          numRetries = expiresIn.inMinutes - 1;
-        }
-
-        // The token refresh timeout keeps the Node.js process alive, so only create it if this
-        // instance has not already been deleted.
-        if (numRetries != 0 && !_isDeleted) {
-          _setTokenRefreshTimeout(refreshTime, numRetries);
-        }
-
-        return token;
       }).catchError((error, tr) {
         var errorMessage =
             'Credential implementation provided to initializeApp() via the '

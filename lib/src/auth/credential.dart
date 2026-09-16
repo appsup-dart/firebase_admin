@@ -33,42 +33,42 @@ class Certificate {
   }
 
   factory Certificate.fromJson(Map<String, dynamic> json) {
-    var privateKey = json['private_key'];
-    if (privateKey is! String) privateKey = null;
+    var privateKeyPem = json['private_key'];
+    if (privateKeyPem is! String || privateKeyPem.isEmpty) {
+      throw FirebaseAppError.invalidCredential(
+        'Service account object must contain a string "private_key" property.',
+      );
+    }
     var clientEmail = json['client_email'];
-    if (clientEmail is! String) clientEmail = null;
+    if (clientEmail is! String || clientEmail.isEmpty) {
+      throw FirebaseAppError.invalidCredential(
+        'Service account object must contain a string "client_email" property.',
+      );
+    }
+    var projectId = json['project_id'];
+    if (projectId is! String || projectId.isEmpty) {
+      throw FirebaseAppError.invalidCredential(
+        'Service account object must contain a string "project_id" property.',
+      );
+    }
 
-    var v = parsePem(privateKey).first;
-    var keyPair = (v is PrivateKeyInfo) ? v.keyPair : (v as KeyPair?)!;
+    var v = parsePem(privateKeyPem).first;
+    var keyPair = (v is PrivateKeyInfo) ? v.keyPair : (v as KeyPair);
     var pKey = keyPair.privateKey as RsaPrivateKey;
+    var publicKey = keyPair.publicKey as RsaPublicKey?;
 
-    String bytesToBase64(List<int> bytes) {
-      return base64Url.encode(bytes).replaceAll('=', '');
-    }
-
-    String intToBase64(BigInt v) {
-      var s = v.toRadixString(16);
-      if (s.length % 2 != 0) s = '0$s';
-      return bytesToBase64(s
-          .replaceAllMapped(RegExp('[0-9a-f]{2}'), (m) => '${m.group(0)},')
-          .split(',')
-          .where((v) => v.isNotEmpty)
-          .map((v) => int.parse(v, radix: 16))
-          .toList());
-    }
-
-    var k = JsonWebKey.fromJson({
-      'kty': 'RSA',
-      'n': intToBase64(pKey.modulus),
-      'd': intToBase64(pKey.privateExponent),
-      'p': intToBase64(pKey.firstPrimeFactor),
-      'q': intToBase64(pKey.secondPrimeFactor),
-      'alg': 'RS256',
-      'kid': json['private_key_id']
-    });
+    var privateKey = JsonWebKey.rsa(
+      modulus: pKey.modulus,
+      exponent: publicKey?.exponent ?? BigInt.from(65537),
+      privateExponent: pKey.privateExponent,
+      firstPrimeFactor: pKey.firstPrimeFactor,
+      secondPrimeFactor: pKey.secondPrimeFactor,
+      keyId: json['private_key_id'] is String ? json['private_key_id'] : null,
+      algorithm: 'RS256',
+    );
 
     return Certificate(
-        projectId: json['project_id'], privateKey: k, clientEmail: clientEmail);
+        projectId: projectId, privateKey: privateKey, clientEmail: clientEmail);
   }
 }
 

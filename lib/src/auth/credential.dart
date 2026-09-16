@@ -3,11 +3,18 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:x509/x509.dart';
 import '../utils/error.dart';
-import 'package:http/http.dart' as http;
 import 'package:jose/jose.dart';
 import '../credential.dart';
 import 'package:clock/clock.dart';
 import 'package:openid_client/openid_client.dart' as openid;
+
+String _openidClientId(Map<String, dynamic> json) {
+  var clientId = json['client_id'];
+  if (clientId is String && clientId.isNotEmpty) return clientId;
+  var email = json['client_email'];
+  if (email is String && email.isNotEmpty) return email;
+  return 'firebase-admin';
+}
 
 /// Contains the properties necessary to use service-account JSON credentials.
 class Certificate {
@@ -80,7 +87,7 @@ class ServiceAccountCredential extends _OpenIdCredential
 
   ServiceAccountCredential.fromJson(Map<String, dynamic> json)
       : certificate = Certificate.fromJson(json),
-        super(json['client_id']!, null);
+        super(_openidClientId(json), null);
 
   factory ServiceAccountCredential(dynamic serviceAccountPathOrObject) {
     {
@@ -172,7 +179,6 @@ abstract class FirebaseCredential implements Credential {
 /// Implementation of Credential that gets access tokens from refresh tokens.
 class RefreshTokenCredential extends _OpenIdCredential {
   final String refreshToken;
-  final http.Client httpClient = http.Client();
 
   RefreshTokenCredential(Map<String, dynamic> json)
       : refreshToken = json['refresh_token'],

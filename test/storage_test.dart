@@ -150,4 +150,84 @@ void main() {
       expect(info.length, 5);
     });
   });
+
+  group('Storage read', () {
+    late http.Client Function() previousFactory;
+    late App app;
+    late Storage storage;
+
+    setUp(() {
+      previousFactory = AuthorizedHttpClient.httpClientFactory;
+      AuthorizedHttpClient.httpClientFactory = () => MockClient((
+        request,
+      ) async {
+        expect(request.method, 'GET');
+        expect(request.url.queryParameters['alt'], 'media');
+        final bytes = utf8.encode('hello');
+        final range = request.headers['range'];
+        if (range != null) {
+          // bytes=1-3 → "ell"
+          expect(range, 'bytes=1-3');
+          return http.Response.bytes(
+            bytes.sublist(1, 4),
+            206,
+            headers: {
+              'content-type': 'text/plain',
+              'content-length': '3',
+              'content-range': 'bytes 1-3/5',
+            },
+            request: request,
+          );
+        }
+        return http.Response.bytes(
+          bytes,
+          200,
+          headers: {
+            'content-type': 'text/plain',
+            'content-length': '${bytes.length}',
+          },
+          request: request,
+        );
+      });
+      app = admin.initializeApp(
+        mocks.appOptions,
+        'storage-read-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      storage = app.storage();
+    });
+
+    tearDown(() async {
+      AuthorizedHttpClient.httpClientFactory = previousFactory;
+      await app.delete();
+    });
+
+    test('File.read downloads full object', () async {
+      final chunks = await storage
+          .bucket('upload-bucket')
+          .file('docs/a.txt')
+          .read()
+          .toList();
+      expect(utf8.decode(chunks.expand((c) => c).toList()), 'hello');
+    });
+
+    test('File.read supports offset and length', () async {
+      final chunks = await storage
+          .bucket('upload-bucket')
+          .file('docs/a.txt')
+          .read(offset: 1, length: 3)
+          .toList();
+      expect(utf8.decode(chunks.expand((c) => c).toList()), 'ell');
+    });
+
+    test('read requires length when offset is non-zero', () {
+      expect(
+        () => storage
+            .bucket('upload-bucket')
+            .file('a.txt')
+            .read(offset: 1)
+            .toList(),
+        throwsArgumentError,
+      );
+    });
+  });
 }

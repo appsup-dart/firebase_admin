@@ -184,6 +184,43 @@ class File extends BucketItem {
     }
   }
 
+  /// Reads this object's content as a byte stream.
+  ///
+  /// If [offset] is non-zero, [length] must be provided. If [length] is
+  /// provided, it must be greater than `0`.
+  Stream<List<int>> read({int? offset, int? length}) async* {
+    offset ??= 0;
+
+    if (offset != 0 && length == null) {
+      throw ArgumentError('length must have a value if offset is non-zero.');
+    }
+
+    var options = DownloadOptions.fullMedia;
+    if (length != null) {
+      if (length <= 0) {
+        throw ArgumentError.value(
+          length,
+          'length',
+          'If provided, length must greater than zero.',
+        );
+      }
+      // ByteRange end is inclusive.
+      options = PartialDownloadOptions(ByteRange(offset, offset + length - 1));
+    }
+
+    try {
+      final response = await bucket._client.objects.get(
+        bucket.name,
+        name,
+        downloadOptions: options,
+      );
+      final media = response as Media;
+      yield* media.stream;
+    } on DetailedApiRequestError catch (error) {
+      throw _storageError(error);
+    }
+  }
+
   /// Writes [bytes] as this object's content, replacing any existing object.
   ///
   /// [contentType] defaults to `application/octet-stream`. Optional [metadata]

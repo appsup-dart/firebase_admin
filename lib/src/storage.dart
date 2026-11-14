@@ -198,6 +198,37 @@ class File extends BucketItem {
     }
   }
 
+  /// Updates mutable metadata for this object.
+  ///
+  /// Only non-null arguments are patched. Returns the updated [ObjectInfo].
+  Future<ObjectInfo> updateMetadata({
+    String? contentType,
+    String? contentEncoding,
+    String? cacheControl,
+    String? contentDisposition,
+    String? contentLanguage,
+    Map<String, String>? metadata,
+  }) async {
+    try {
+      final request = storage_api.Object()
+        ..contentType = contentType
+        ..contentEncoding = contentEncoding
+        ..cacheControl = cacheControl
+        ..contentDisposition = contentDisposition
+        ..contentLanguage = contentLanguage
+        ..metadata = metadata;
+      final response = await bucket._client.objects.patch(
+        request,
+        bucket.name,
+        name,
+        projection: 'full',
+      );
+      return ObjectInfo._fromApi(response);
+    } on DetailedApiRequestError catch (error) {
+      throw _storageError(error);
+    }
+  }
+
   /// Reads this object's content as a byte stream.
   ///
   /// If [offset] is non-zero, [length] must be provided. If [length] is

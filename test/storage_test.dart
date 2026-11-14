@@ -296,5 +296,68 @@ void main() {
       expect(info.customMetadata, {'env': 'test'});
     });
 
+
+  });
+
+  group('Storage updateMetadata', () {
+    late http.Client Function() previousFactory;
+    late App app;
+    late Storage storage;
+    http.BaseRequest? lastRequest;
+
+    setUp(() {
+      previousFactory = AuthorizedHttpClient.httpClientFactory;
+      lastRequest = null;
+      AuthorizedHttpClient.httpClientFactory = () => MockClient((
+        request,
+      ) async {
+        lastRequest = request;
+        expect(request.method, 'PATCH');
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        return http.Response(
+          jsonEncode({
+            'kind': 'storage#object',
+            'bucket': 'upload-bucket',
+            'name': 'docs/a.txt',
+            'contentType': body['contentType'] ?? 'text/plain',
+            'cacheControl': body['cacheControl'],
+            'size': '5',
+            'generation': '43',
+            'metadata': body['metadata'] ?? {'env': 'test'},
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      });
+      app = admin.initializeApp(
+        mocks.appOptions,
+        'storage-update-meta-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      storage = app.storage();
+    });
+
+    tearDown(() async {
+      AuthorizedHttpClient.httpClientFactory = previousFactory;
+      await app.delete();
+    });
+
+    test('File.updateMetadata patches fields', () async {
+      final info = await storage
+          .bucket('upload-bucket')
+          .file('docs/a.txt')
+          .updateMetadata(
+            contentType: 'text/html',
+            cacheControl: 'no-cache',
+            metadata: {'env': 'prod'},
+          );
+      expect(info.contentType, 'text/html');
+      expect(info.cacheControl, 'no-cache');
+      expect(info.customMetadata, {'env': 'prod'});
+      expect(info.generation, '43');
+      expect(lastRequest!.method, 'PATCH');
+      expect(lastRequest!.url.path, contains('/docs%2Fa.txt'));
+    });
+
   });
 }

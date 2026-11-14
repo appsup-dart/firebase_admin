@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
 // Prefer googleapis JSON API for now: supports delimiter/prefix listing.
 // googleapis marks this library deprecated in favor of package:google_cloud_storage.
@@ -7,7 +8,10 @@ import 'package:googleapis/storage/v1.dart' as storage_api;
 
 import '../firebase_admin.dart';
 import 'service.dart';
+import 'storage/signed_url.dart';
 import 'utils/api_request.dart';
+
+export 'storage/signed_url.dart' show SignedUrlAction;
 
 /// Storage service bound to the provided app.
 ///
@@ -182,6 +186,31 @@ class File extends BucketItem {
     } on DetailedApiRequestError catch (error) {
       throw _storageError(error);
     }
+  }
+
+  /// Creates a V4 signed URL for this object.
+  ///
+  /// [expires] is measured from now and must be at most 7 days. Requires the
+  /// app to be initialized with a service account credential that includes a
+  /// private key. Optional [contentType] / [headers] must also be sent by the
+  /// client when using the URL.
+  Future<Uri> getSignedUrl({
+    SignedUrlAction action = SignedUrlAction.read,
+    required Duration expires,
+    String? contentType,
+    Map<String, String>? headers,
+    Map<String, String>? queryParams,
+  }) async {
+    return createSignedUrl(
+      app: bucket._storage.app,
+      bucketName: bucket.name,
+      objectName: name,
+      action: action,
+      expires: expires,
+      contentType: contentType,
+      headers: headers,
+      queryParams: queryParams,
+    );
   }
 
   /// Looks up metadata for this object.

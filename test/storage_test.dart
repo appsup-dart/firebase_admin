@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:firebase_admin/firebase_admin.dart';
 import 'package:firebase_admin/src/utils/api_request.dart';
 import 'package:http/http.dart' as http;
@@ -359,5 +360,64 @@ void main() {
       expect(lastRequest!.url.path, contains('/docs%2Fa.txt'));
     });
 
+  });
+
+  group('Storage getSignedUrl', () {
+    late App app;
+    late Storage storage;
+
+    setUp(() {
+      app = admin.initializeApp(
+        mocks.appOptions,
+        'storage-signed-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      storage = app.storage();
+    });
+
+    tearDown(() async {
+      await app.delete();
+    });
+
+    test('creates a V4 virtual-hosted signed URL', () async {
+      await withClock(Clock.fixed(DateTime.utc(2024, 1, 2, 3, 4, 5)), () async {
+        final url = await storage.bucket('my-bucket').file('docs/a.txt').getSignedUrl(
+          expires: const Duration(hours: 1),
+        );
+        expect(url.scheme, 'https');
+        expect(url.host, 'my-bucket.storage.googleapis.com');
+        expect(url.path, '/docs/a.txt');
+        expect(url.queryParameters['X-Goog-Algorithm'], 'GOOG4-RSA-SHA256');
+        expect(
+          url.queryParameters['X-Goog-Credential'],
+          startsWith('foo@project_id.iam.gserviceaccount.com/20240102/auto/storage/goog4_request'),
+        );
+        expect(url.queryParameters['X-Goog-Date'], '20240102T030405Z');
+        expect(url.queryParameters['X-Goog-Expires'], '3600');
+        expect(url.queryParameters['X-Goog-SignedHeaders'], 'host');
+        expect(url.queryParameters['X-Goog-Signature'], isNotEmpty);
+        expect(
+          url.queryParameters['X-Goog-Signature'],
+          matches(RegExp(r'^[0-9a-f]+$')),
+        );
+      });
+    });
+
+    test('includes content-type in signed headers when provided', () async {
+      final url = await storage.bucket('my-bucket').file('a.txt').getSignedUrl(
+        action: SignedUrlAction.write,
+        expires: const Duration(minutes: 15),
+        contentType: 'text/plain',
+      );
+      expect(url.queryParameters['X-Goog-SignedHeaders'], 'content-type;host');
+    });
+
+    test('rejects expires longer than 7 days', () async {
+      expect(
+        () => storage.bucket('my-bucket').file('a.txt').getSignedUrl(
+          expires: const Duration(days: 8),
+        ),
+        throwsFirebaseError('storage/invalid-argument'),
+      );
+    });
   });
 }

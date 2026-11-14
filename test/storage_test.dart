@@ -230,4 +230,71 @@ void main() {
       );
     });
   });
+
+  group('Storage info', () {
+    late http.Client Function() previousFactory;
+    late App app;
+    late Storage storage;
+
+    setUp(() {
+      previousFactory = AuthorizedHttpClient.httpClientFactory;
+      AuthorizedHttpClient.httpClientFactory = () => MockClient((
+        request,
+      ) async {
+        expect(request.method, 'GET');
+        expect(request.url.queryParameters['alt'], 'json');
+        expect(request.url.queryParameters['projection'], 'full');
+        return http.Response(
+          jsonEncode({
+            'kind': 'storage#object',
+            'bucket': 'upload-bucket',
+            'name': 'docs/a.txt',
+            'contentType': 'text/plain',
+            'cacheControl': 'public, max-age=3600',
+            'size': '5',
+            'generation': '42',
+            'metageneration': '7',
+            'etag': 'abc',
+            'updated': '2024-01-02T03:04:05.000Z',
+            'mediaLink':
+                'https://storage.googleapis.com/download/storage/v1/b/upload-bucket/o/docs%2Fa.txt?alt=media',
+            'md5Hash': 'XUFAKrxLKna5cZ2REBfFkg==',
+            'crc32c': 'AAAAAA==',
+            'metadata': {'env': 'test'},
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      });
+      app = admin.initializeApp(
+        mocks.appOptions,
+        'storage-info-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      storage = app.storage();
+    });
+
+    tearDown(() async {
+      AuthorizedHttpClient.httpClientFactory = previousFactory;
+      await app.delete();
+    });
+
+    test('File.info returns ObjectInfo', () async {
+      final info =
+          await storage.bucket('upload-bucket').file('docs/a.txt').info();
+      expect(info.bucket, 'upload-bucket');
+      expect(info.name, 'docs/a.txt');
+      expect(info.contentType, 'text/plain');
+      expect(info.cacheControl, 'public, max-age=3600');
+      expect(info.length, 5);
+      expect(info.generation, '42');
+      expect(info.metageneration, '7');
+      expect(info.etag, 'abc');
+      expect(info.updated, DateTime.utc(2024, 1, 2, 3, 4, 5));
+      expect(info.downloadLink, isNotNull);
+      expect(info.md5Hash, 'XUFAKrxLKna5cZ2REBfFkg==');
+      expect(info.customMetadata, {'env': 'test'});
+    });
+
+  });
 }

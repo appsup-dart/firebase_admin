@@ -184,6 +184,20 @@ class File extends BucketItem {
     }
   }
 
+  /// Looks up metadata for this object.
+  Future<ObjectInfo> info() async {
+    try {
+      final response = await bucket._client.objects.get(
+        bucket.name,
+        name,
+        projection: 'full',
+      );
+      return ObjectInfo._fromApi(response as storage_api.Object);
+    } on DetailedApiRequestError catch (error) {
+      throw _storageError(error);
+    }
+  }
+
   /// Reads this object's content as a byte stream.
   ///
   /// If [offset] is non-zero, [length] must be provided. If [length] is
@@ -294,11 +308,35 @@ class ObjectInfo {
   /// MIME type, if set.
   final String? contentType;
 
+  /// `Content-Encoding`, if set.
+  final String? contentEncoding;
+
+  /// `Cache-Control`, if set.
+  final String? cacheControl;
+
+  /// `Content-Disposition`, if set.
+  final String? contentDisposition;
+
+  /// `Content-Language`, if set.
+  final String? contentLanguage;
+
   /// Object size in bytes, if known.
   final int? length;
 
   /// Object generation, if known.
   final String? generation;
+
+  /// Metadata generation, if known.
+  final String? metageneration;
+
+  /// Entity tag, if known.
+  final String? etag;
+
+  /// Last update time, if known.
+  final DateTime? updated;
+
+  /// Direct media download link, if known.
+  final Uri? downloadLink;
 
   /// Base64 MD5 hash, if known.
   final String? md5Hash;
@@ -313,8 +351,16 @@ class ObjectInfo {
     required this.bucket,
     required this.name,
     this.contentType,
+    this.contentEncoding,
+    this.cacheControl,
+    this.contentDisposition,
+    this.contentLanguage,
     this.length,
     this.generation,
+    this.metageneration,
+    this.etag,
+    this.updated,
+    this.downloadLink,
     this.md5Hash,
     this.crc32c,
     this.customMetadata,
@@ -325,8 +371,17 @@ class ObjectInfo {
       bucket: object.bucket ?? '',
       name: object.name ?? '',
       contentType: object.contentType,
+      contentEncoding: object.contentEncoding,
+      cacheControl: object.cacheControl,
+      contentDisposition: object.contentDisposition,
+      contentLanguage: object.contentLanguage,
       length: object.size == null ? null : int.tryParse(object.size!),
       generation: object.generation,
+      metageneration: object.metageneration,
+      etag: object.etag,
+      updated: object.updated,
+      downloadLink:
+          object.mediaLink == null ? null : Uri.parse(object.mediaLink!),
       md5Hash: object.md5Hash,
       crc32c: object.crc32c,
       customMetadata: object.metadata == null

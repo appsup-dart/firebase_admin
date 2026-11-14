@@ -636,4 +636,10 @@ class FirebaseStorageError extends _PrefixedFirebaseError {
 
   FirebaseStorageError.invalidArgument(String message)
       : this('invalid-argument', message);
+
+  FirebaseStorageError.noDownloadToken([String? message])
+      : this(
+            'no-download-token',
+            message ??
+                'No download token available. Please create one in the Firebase Console.');
 }

@@ -420,4 +420,62 @@ void main() {
       );
     });
   });
+
+  group('Storage getDownloadURL', () {
+    late http.Client Function() previousFactory;
+    late App app;
+    late Storage storage;
+    String? downloadTokens;
+
+    setUp(() {
+      previousFactory = AuthorizedHttpClient.httpClientFactory;
+      downloadTokens = 'token-one,token-two';
+      AuthorizedHttpClient.httpClientFactory = () => MockClient((
+        request,
+      ) async {
+        expect(request.method, 'GET');
+        expect(request.url.host, 'firebasestorage.googleapis.com');
+        expect(request.url.path, '/v0/b/my-bucket/o/docs%2Fa.txt');
+        return http.Response(
+          jsonEncode({
+            'name': 'docs/a.txt',
+            'bucket': 'my-bucket',
+            'downloadTokens': downloadTokens,
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      });
+      app = admin.initializeApp(
+        mocks.appOptions,
+        'storage-download-url-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      storage = app.storage();
+    });
+
+    tearDown(() async {
+      AuthorizedHttpClient.httpClientFactory = previousFactory;
+      await app.delete();
+    });
+
+    test('returns Firebase download URL using first token', () async {
+      final url =
+          await storage.bucket('my-bucket').file('docs/a.txt').getDownloadURL();
+      expect(
+        url.toString(),
+        'https://firebasestorage.googleapis.com/v0/b/my-bucket/o/docs%2Fa.txt'
+        '?alt=media&token=token-one',
+      );
+    });
+
+
+    test('throws when download token is missing', () async {
+      downloadTokens = null;
+      expect(
+        () => storage.bucket('my-bucket').file('docs/a.txt').getDownloadURL(),
+        throwsFirebaseError('storage/no-download-token'),
+      );
+    });
+  });
 }

@@ -8,6 +8,7 @@ import 'package:googleapis/storage/v1.dart' as storage_api;
 
 import '../firebase_admin.dart';
 import 'service.dart';
+import 'storage/download_url.dart';
 import 'storage/signed_url.dart';
 import 'utils/api_request.dart';
 
@@ -210,6 +211,24 @@ class File extends BucketItem {
       contentType: contentType,
       headers: headers,
       queryParams: queryParams,
+    );
+  }
+
+  /// Returns the Firebase download URL for this object.
+  ///
+  /// Uses the Firebase Storage HTTP API to read `downloadTokens` and builds
+  /// `https://firebasestorage.googleapis.com/v0/b/…/o/…?alt=media&token=…`.
+  /// Throws [FirebaseStorageError.noDownloadToken] when no token exists.
+  Future<Uri> getDownloadURL() async {
+    final metadata = await getFirebaseStorageMetadata(
+      app: bucket._storage.app,
+      bucketName: bucket.name,
+      objectName: name,
+    );
+    return downloadUrlFromFirebaseMetadata(
+      bucketName: bucket.name,
+      objectName: name,
+      metadata: metadata,
     );
   }
 

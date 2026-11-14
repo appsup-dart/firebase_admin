@@ -5,7 +5,7 @@ homepage: https://github.com/appsup-dart/firebase_admin
 repository: https://github.com/appsup-dart/firebase_admin
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=3.9.0 <4.0.0'
 
 dependencies:
   clock: ^1.1.0
@@ -19,11 +19,10 @@ dependencies:
   http: ">=0.13.0 <2.0.0"
   crypto_keys: ^0.3.0
   collection: ^1.15.0
-  gcloud: ^0.9.0
   firebaseapis: ">=0.1.2 <0.3.0"
   snapshot: ^0.2.5
   _discoveryapis_commons: ^1.0.4
-  googleapis: '>=15.0.0 <17.0.0'
+  googleapis: ^19.0.0
 
 dev_dependencies:
   test: ^1.17.8

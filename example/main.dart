@@ -30,7 +30,7 @@ void main() async {
     print(e.message);
   }
 
-  await for (var v in app.storage().bucket().list()) {
-    print(v.name);
+  await for (final item in app.storage().bucket().root().list()) {
+    print('${item.isDirectory ? 'dir' : 'obj'}: ${item.name}');
   }
 }

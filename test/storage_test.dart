@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:firebase_admin/firebase_admin.dart';
+import 'package:firebase_admin/src/utils/api_request.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:test/test.dart';
 import 'resources/mocks.dart' as mocks;
 
@@ -67,6 +72,82 @@ void main() {
     });
     test('absoluteObjectName() includes gs scheme', () {
       expect(storage.bucket('foo').absoluteObjectName('a/b'), 'gs://foo/a/b');
+    });
+  });
+
+  group('Storage write', () {
+    late http.Client Function() previousFactory;
+    late App app;
+    late Storage storage;
+    http.BaseRequest? lastRequest;
+
+    setUp(() {
+      previousFactory = AuthorizedHttpClient.httpClientFactory;
+      lastRequest = null;
+      AuthorizedHttpClient.httpClientFactory = () => MockClient((
+        request,
+      ) async {
+        lastRequest = request;
+        final name = request.url.queryParameters['name'] ?? 'uploaded.txt';
+        return http.Response(
+          jsonEncode({
+            'kind': 'storage#object',
+            'bucket': 'upload-bucket',
+            'name': name,
+            'contentType': 'text/plain',
+            'size': '5',
+            'generation': '42',
+            'metadata': {'env': 'test'},
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      });
+      app = admin.initializeApp(
+        mocks.appOptions,
+        'storage-write-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      storage = app.storage();
+    });
+
+    tearDown(() async {
+      AuthorizedHttpClient.httpClientFactory = previousFactory;
+      await app.delete();
+    });
+
+    test('File.writeBytes uploads bytes and returns ObjectInfo', () async {
+      final info = await storage
+          .bucket('upload-bucket')
+          .file('docs/a.txt')
+          .writeBytes(
+            utf8.encode('hello'),
+            contentType: 'text/plain',
+            metadata: {'env': 'test'},
+          );
+      expect(info, isA<ObjectInfo>());
+      expect(info.bucket, 'upload-bucket');
+      expect(info.name, 'docs/a.txt');
+      expect(info.contentType, 'text/plain');
+      expect(info.length, 5);
+      expect(info.generation, '42');
+      expect(info.customMetadata, {'env': 'test'});
+      expect(lastRequest, isNotNull);
+      expect(lastRequest!.method, 'POST');
+      expect(lastRequest!.url.path, contains('/upload/storage/v1/b/'));
+      expect(lastRequest!.url.path, contains('/upload-bucket/o'));
+    });
+
+
+    test('File.write sink uploads on close', () async {
+      final sink = storage.bucket('upload-bucket').file('docs/c.txt').write(
+        length: 5,
+        contentType: 'text/plain',
+      );
+      sink.add(utf8.encode('hello'));
+      final info = await sink.close();
+      expect(info.name, 'docs/c.txt');
+      expect(info.length, 5);
     });
   });
 }

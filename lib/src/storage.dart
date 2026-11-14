@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
 // Prefer googleapis JSON API for now: supports delimiter/prefix listing.
 // googleapis marks this library deprecated in favor of package:google_cloud_storage.
@@ -43,7 +44,10 @@ class Storage implements FirebaseService {
   }
 }
 
-/// Reference to a Cloud Storage bucket owned by this package (not `gcloud`).
+/// Reference to a Cloud Storage bucket.
+///
+/// Use [file] / [prefix] / [root] / [list] for navigation. Object operations
+/// (read, write, metadata, URLs, …) live on [File].
 class Bucket {
   final Storage _storage;
   final String name;
@@ -179,6 +183,191 @@ class File extends BucketItem {
       throw _storageError(error);
     }
   }
+
+  /// Writes [bytes] as this object's content, replacing any existing object.
+  ///
+  /// [contentType] defaults to `application/octet-stream`. Optional [metadata]
+  /// is stored as custom object metadata (GCS `metadata` map).
+  Future<ObjectInfo> writeBytes(
+    List<int> bytes, {
+    String contentType = 'application/octet-stream',
+    Map<String, String>? metadata,
+  }) {
+    return _upload(
+      Stream<List<int>>.value(bytes),
+      length: bytes.length,
+      contentType: contentType,
+      metadata: metadata,
+    );
+  }
+
+  /// Opens a sink to write this object's content, replacing any existing object.
+  ///
+  /// When [length] is known, a simple/multipart upload is used; otherwise a
+  /// resumable upload. Closing the sink completes with [ObjectInfo].
+  ObjectWriteSink write({
+    int? length,
+    String contentType = 'application/octet-stream',
+    Map<String, String>? metadata,
+  }) {
+    return _ObjectWriteSink(
+      length: length,
+      contentType: contentType,
+      metadata: metadata,
+      upload: _upload,
+    );
+  }
+
+  Future<ObjectInfo> _upload(
+    Stream<List<int>> stream, {
+    required int? length,
+    required String contentType,
+    required Map<String, String>? metadata,
+  }) async {
+    try {
+      final request = storage_api.Object()
+        ..name = name
+        ..contentType = contentType
+        ..metadata = metadata;
+      final media = Media(stream, length, contentType: contentType);
+      final uploaded = await bucket._client.objects.insert(
+        request,
+        bucket.name,
+        name: name,
+        uploadMedia: media,
+        uploadOptions: length == null
+            ? UploadOptions.resumable
+            : UploadOptions.defaultOptions,
+      );
+      return ObjectInfo._fromApi(uploaded);
+    } on DetailedApiRequestError catch (error) {
+      throw _storageError(error);
+    }
+  }
+}
+
+/// Metadata for a Cloud Storage object.
+class ObjectInfo {
+  /// Bucket that contains the object.
+  final String bucket;
+
+  /// Object name (path within the bucket).
+  final String name;
+
+  /// MIME type, if set.
+  final String? contentType;
+
+  /// Object size in bytes, if known.
+  final int? length;
+
+  /// Object generation, if known.
+  final String? generation;
+
+  /// Base64 MD5 hash, if known.
+  final String? md5Hash;
+
+  /// Base64 CRC32C checksum, if known.
+  final String? crc32c;
+
+  /// Custom metadata key/value pairs, if any.
+  final Map<String, String>? customMetadata;
+
+  ObjectInfo({
+    required this.bucket,
+    required this.name,
+    this.contentType,
+    this.length,
+    this.generation,
+    this.md5Hash,
+    this.crc32c,
+    this.customMetadata,
+  });
+
+  factory ObjectInfo._fromApi(storage_api.Object object) {
+    return ObjectInfo(
+      bucket: object.bucket ?? '',
+      name: object.name ?? '',
+      contentType: object.contentType,
+      length: object.size == null ? null : int.tryParse(object.size!),
+      generation: object.generation,
+      md5Hash: object.md5Hash,
+      crc32c: object.crc32c,
+      customMetadata: object.metadata == null
+          ? null
+          : Map<String, String>.from(object.metadata!),
+    );
+  }
+}
+
+/// [StreamSink] for [File.write]; [done]/[close] yield [ObjectInfo].
+abstract class ObjectWriteSink implements StreamSink<List<int>> {
+  @override
+  Future<ObjectInfo> get done;
+
+  @override
+  Future<ObjectInfo> close();
+}
+
+class _ObjectWriteSink implements ObjectWriteSink {
+  final int? length;
+  final String contentType;
+  final Map<String, String>? metadata;
+  final Future<ObjectInfo> Function(
+    Stream<List<int>> stream, {
+    required int? length,
+    required String contentType,
+    required Map<String, String>? metadata,
+  })
+  upload;
+
+  final _controller = StreamController<List<int>>();
+  final _done = Completer<ObjectInfo>();
+  var _started = false;
+
+  _ObjectWriteSink({
+    required this.length,
+    required this.contentType,
+    required this.metadata,
+    required this.upload,
+  });
+
+  void _ensureStarted() {
+    if (_started) return;
+    _started = true;
+    upload(
+      _controller.stream,
+      length: length,
+      contentType: contentType,
+      metadata: metadata,
+    ).then(_done.complete, onError: _done.completeError);
+  }
+
+  @override
+  void add(List<int> data) {
+    _ensureStarted();
+    _controller.add(data);
+  }
+
+  @override
+  void addError(Object error, [StackTrace? stackTrace]) {
+    _ensureStarted();
+    _controller.addError(error, stackTrace);
+  }
+
+  @override
+  Future addStream(Stream<List<int>> stream) {
+    _ensureStarted();
+    return _controller.addStream(stream);
+  }
+
+  @override
+  Future<ObjectInfo> close() {
+    _ensureStarted();
+    return _controller.close().then((_) => _done.future);
+  }
+
+  @override
+  Future<ObjectInfo> get done => _done.future;
 }
 
 /// A virtual directory in a delimiter-based listing hierarchy.

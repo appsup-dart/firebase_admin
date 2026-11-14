@@ -477,5 +477,147 @@ void main() {
         throwsFirebaseError('storage/no-download-token'),
       );
     });
+
+    test('listDownloadURLs returns a URL per token', () async {
+      final urls =
+          await storage.bucket('my-bucket').file('docs/a.txt').listDownloadURLs();
+      expect(urls, hasLength(2));
+      expect(urls[0].queryParameters['token'], 'token-one');
+      expect(urls[1].queryParameters['token'], 'token-two');
+    });
+  });
+
+  group('Storage create/revoke download URL', () {
+    late http.Client Function() previousFactory;
+    late App app;
+    late Storage storage;
+    var objectMetadata = <String, String>{};
+    http.BaseRequest? lastPatch;
+
+    setUp(() {
+      previousFactory = AuthorizedHttpClient.httpClientFactory;
+      objectMetadata = <String, String>{};
+      lastPatch = null;
+      AuthorizedHttpClient.httpClientFactory = () => MockClient((
+        request,
+      ) async {
+        if (request.method == 'PATCH') {
+          lastPatch = request;
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          final meta = body['metadata'];
+          if (meta is Map) {
+            objectMetadata = meta.map(
+              (k, v) => MapEntry(k.toString(), v.toString()),
+            );
+          } else {
+            objectMetadata = {};
+          }
+          return http.Response(
+            jsonEncode({
+              'kind': 'storage#object',
+              'bucket': 'my-bucket',
+              'name': 'docs/a.txt',
+              'metadata': objectMetadata,
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+            request: request,
+          );
+        }
+        // GCS objects.get (info)
+        if (request.url.host.contains('googleapis.com') &&
+            request.url.path.contains('/storage/v1/')) {
+          return http.Response(
+            jsonEncode({
+              'kind': 'storage#object',
+              'bucket': 'my-bucket',
+              'name': 'docs/a.txt',
+              'metadata': objectMetadata,
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+            request: request,
+          );
+        }
+        return http.Response('unexpected ${request.url}', 500, request: request);
+      });
+      app = admin.initializeApp(
+        mocks.appOptions,
+        'storage-create-dl-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      storage = app.storage();
+    });
+
+    tearDown(() async {
+      AuthorizedHttpClient.httpClientFactory = previousFactory;
+      await app.delete();
+    });
+
+    test('createDownloadURL mints a new token', () async {
+      final url =
+          await storage.bucket('my-bucket').file('docs/a.txt').createDownloadURL();
+      expect(url.host, 'firebasestorage.googleapis.com');
+      expect(url.queryParameters['token'], isNotEmpty);
+      expect(lastPatch, isNotNull);
+      final tokens =
+          objectMetadata['firebaseStorageDownloadTokens']!.split(',');
+      expect(tokens, hasLength(1));
+      expect(url.queryParameters['token'], tokens.single);
+    });
+
+    test('createDownloadURL appends to existing tokens', () async {
+      objectMetadata = {
+        'firebaseStorageDownloadTokens': 'existing-token',
+        'env': 'test',
+      };
+      final url =
+          await storage.bucket('my-bucket').file('docs/a.txt').createDownloadURL();
+      final tokens =
+          objectMetadata['firebaseStorageDownloadTokens']!.split(',');
+      expect(tokens, ['existing-token', url.queryParameters['token']]);
+      expect(objectMetadata['env'], 'test');
+    });
+
+    test('revokeDownloadURL removes one token', () async {
+      objectMetadata = {
+        'firebaseStorageDownloadTokens': 'token-a,token-b',
+      };
+      final toRevoke = Uri.parse(
+        'https://firebasestorage.googleapis.com/v0/b/my-bucket/o/docs%2Fa.txt'
+        '?alt=media&token=token-a',
+      );
+      await storage
+          .bucket('my-bucket')
+          .file('docs/a.txt')
+          .revokeDownloadURL(toRevoke);
+      expect(objectMetadata['firebaseStorageDownloadTokens'], 'token-b');
+    });
+
+    test('revokeDownloadURL() clears all tokens', () async {
+      objectMetadata = {
+        'firebaseStorageDownloadTokens': 'token-a,token-b',
+        'env': 'test',
+      };
+      await storage.bucket('my-bucket').file('docs/a.txt').revokeDownloadURL();
+      expect(objectMetadata.containsKey('firebaseStorageDownloadTokens'), isFalse);
+      expect(objectMetadata['env'], 'test');
+    });
+
+    test('revokeDownloadURL rejects foreign URLs', () async {
+      objectMetadata = {
+        'firebaseStorageDownloadTokens': 'token-a',
+      };
+      final foreign = Uri.parse(
+        'https://firebasestorage.googleapis.com/v0/b/my-bucket/o/other.txt'
+        '?alt=media&token=token-a',
+      );
+      expect(
+        () => storage
+            .bucket('my-bucket')
+            .file('docs/a.txt')
+            .revokeDownloadURL(foreign),
+        throwsFirebaseError('storage/invalid-argument'),
+      );
+    });
   });
 }

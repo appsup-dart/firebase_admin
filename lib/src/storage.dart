@@ -219,6 +219,7 @@ class File extends BucketItem {
   /// Uses the Firebase Storage HTTP API to read `downloadTokens` and builds
   /// `https://firebasestorage.googleapis.com/v0/b/…/o/…?alt=media&token=…`.
   /// Throws [FirebaseStorageError.noDownloadToken] when no token exists.
+  /// Does not create a token — use [createDownloadURL] for that.
   Future<Uri> getDownloadURL() async {
     final metadata = await getFirebaseStorageMetadata(
       app: bucket._storage.app,
@@ -230,6 +231,81 @@ class File extends BucketItem {
       objectName: name,
       metadata: metadata,
     );
+  }
+
+  /// Lists all Firebase download URLs for this object (may be empty).
+  Future<List<Uri>> listDownloadURLs() async {
+    final metadata = await getFirebaseStorageMetadata(
+      app: bucket._storage.app,
+      bucketName: bucket.name,
+      objectName: name,
+    );
+    return downloadUrlsFromFirebaseMetadata(
+      bucketName: bucket.name,
+      objectName: name,
+      metadata: metadata,
+    );
+  }
+
+  /// Creates a new Firebase download token and returns its download URL.
+  ///
+  /// Always mints a new token (does not reuse existing ones). Equivalent to
+  /// “Create new download URL” in the Firebase Console.
+  Future<Uri> createDownloadURL() async {
+    final info = await this.info();
+    final tokens = parseDownloadTokens(
+      info.customMetadata?[firebaseStorageDownloadTokensKey],
+    );
+    final token = generateDownloadToken();
+    tokens.add(token);
+    await _setDownloadTokens(tokens, existing: info.customMetadata);
+    return firebaseDownloadUrl(
+      bucketName: bucket.name,
+      objectName: name,
+      token: token,
+    );
+  }
+
+  /// Revokes Firebase download URL access for this object.
+  ///
+  /// If [url] is omitted, all download tokens are removed. If [url] is given,
+  /// only that URL's token is revoked. Throws if [url] does not refer to this
+  /// object, or if its token is not present.
+  Future<void> revokeDownloadURL([Uri? url]) async {
+    final info = await this.info();
+    final tokens = parseDownloadTokens(
+      info.customMetadata?[firebaseStorageDownloadTokensKey],
+    );
+    if (url == null) {
+      if (tokens.isEmpty) return;
+      await _setDownloadTokens(const [], existing: info.customMetadata);
+      return;
+    }
+    final token = downloadTokenFromUrl(
+      url: url,
+      bucketName: bucket.name,
+      objectName: name,
+    );
+    if (!tokens.contains(token)) {
+      throw FirebaseStorageError.invalidArgument(
+        'Download URL token is not registered on this object.',
+      );
+    }
+    tokens.remove(token);
+    await _setDownloadTokens(tokens, existing: info.customMetadata);
+  }
+
+  Future<void> _setDownloadTokens(
+    List<String> tokens, {
+    Map<String, String>? existing,
+  }) async {
+    final custom = Map<String, String>.from(existing ?? const {});
+    if (tokens.isEmpty) {
+      custom.remove(firebaseStorageDownloadTokensKey);
+    } else {
+      custom[firebaseStorageDownloadTokensKey] = tokens.join(',');
+    }
+    await updateMetadata(metadata: custom);
   }
 
   /// Looks up metadata for this object.

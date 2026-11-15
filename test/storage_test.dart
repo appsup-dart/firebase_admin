@@ -139,7 +139,6 @@ void main() {
       expect(lastRequest!.url.path, contains('/upload-bucket/o'));
     });
 
-
     test('File.write sink uploads on close', () async {
       final sink = storage.bucket('upload-bucket').file('docs/c.txt').write(
         length: 5,
@@ -296,7 +295,6 @@ void main() {
       expect(info.md5Hash, 'XUFAKrxLKna5cZ2REBfFkg==');
       expect(info.customMetadata, {'env': 'test'});
     });
-
 
   });
 
@@ -469,7 +467,6 @@ void main() {
       );
     });
 
-
     test('throws when download token is missing', () async {
       downloadTokens = null;
       expect(
@@ -618,6 +615,90 @@ void main() {
             .revokeDownloadURL(foreign),
         throwsFirebaseError('storage/invalid-argument'),
       );
+    });
+  });
+
+  group('Storage copy', () {
+    late http.Client Function() previousFactory;
+    late App app;
+    late Storage storage;
+    late List<http.BaseRequest> requests;
+    late Map<String, dynamic>? rewriteBody;
+
+    setUp(() {
+      previousFactory = AuthorizedHttpClient.httpClientFactory;
+      requests = [];
+      rewriteBody = null;
+      AuthorizedHttpClient.httpClientFactory = () => MockClient((
+        request,
+      ) async {
+        requests.add(request);
+        final path = request.url.path;
+        if (path.contains('/rewriteTo/')) {
+          expect(request.method, 'POST');
+          rewriteBody = jsonDecode(request.body) as Map<String, dynamic>;
+          final destBucket = path.contains('/b/other-bucket/')
+              ? 'other-bucket'
+              : 'src-bucket';
+          return http.Response(
+            jsonEncode({
+              'done': true,
+              'objectSize': '5',
+              'totalBytesRewritten': '5',
+              'resource': {
+                'bucket': destBucket,
+                'name': 'docs/b.txt',
+                'contentType':
+                    rewriteBody!['contentType'] ?? 'text/plain',
+                'size': '5',
+                'generation': '99',
+                'metadata': rewriteBody!['metadata'],
+              },
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+            request: request,
+          );
+        }
+        return http.Response('unexpected', 500, request: request);
+      });
+      app = admin.initializeApp(
+        mocks.appOptions,
+        'storage-copy-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      storage = app.storage();
+    });
+
+    tearDown(() async {
+      AuthorizedHttpClient.httpClientFactory = previousFactory;
+      await app.delete();
+    });
+
+    test('File.copy rewrites to destination File', () async {
+      final dest = storage.bucket('src-bucket').file('docs/b.txt');
+      final info = await storage.bucket('src-bucket').file('docs/a.txt').copy(
+        dest,
+        contentType: 'text/plain',
+        metadata: {'env': 'test'},
+      );
+      expect(info.bucket, 'src-bucket');
+      expect(info.name, 'docs/b.txt');
+      expect(info.contentType, 'text/plain');
+      expect(info.customMetadata, {'env': 'test'});
+      expect(requests, hasLength(1));
+      expect(requests.single.url.path, contains('/rewriteTo/'));
+      expect(requests.single.url.path, contains('/b/src-bucket/o/'));
+      expect(rewriteBody!['contentType'], 'text/plain');
+      expect(rewriteBody!['metadata'], {'env': 'test'});
+    });
+
+    test('File.copy supports cross-bucket destination', () async {
+      final dest = storage.bucket('other-bucket').file('docs/b.txt');
+      final info =
+          await storage.bucket('src-bucket').file('docs/a.txt').copy(dest);
+      expect(info.bucket, 'other-bucket');
+      expect(info.name, 'docs/b.txt');
+      expect(requests.single.url.path, contains('/b/other-bucket/o/'));
     });
   });
 }

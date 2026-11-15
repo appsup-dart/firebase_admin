@@ -189,6 +189,58 @@ class File extends BucketItem {
     }
   }
 
+  /// Copies this object to [destination].
+  ///
+  /// Runs entirely on Cloud Storage via the rewrite API (any object size).
+  /// [destination] may be in another bucket. Optional named metadata fields
+  /// override values on the destination; omitted fields are copied from the
+  /// source. Returns the destination [ObjectInfo].
+  Future<ObjectInfo> copy(
+    File destination, {
+    String? contentType,
+    String? contentEncoding,
+    String? cacheControl,
+    String? contentDisposition,
+    String? contentLanguage,
+    Map<String, String>? metadata,
+  }) async {
+    try {
+      final request = storage_api.Object()
+        ..contentType = contentType
+        ..contentEncoding = contentEncoding
+        ..cacheControl = cacheControl
+        ..contentDisposition = contentDisposition
+        ..contentLanguage = contentLanguage
+        ..metadata = metadata;
+
+      String? rewriteToken;
+      storage_api.RewriteResponse response;
+      do {
+        response = await bucket._client.objects.rewrite(
+          request,
+          bucket.name,
+          name,
+          destination.bucket.name,
+          destination.name,
+          rewriteToken: rewriteToken,
+          projection: 'full',
+        );
+        rewriteToken = response.rewriteToken;
+      } while (response.done != true);
+
+      final resource = response.resource;
+      if (resource == null) {
+        throw FirebaseStorageError(
+          'unknown-error',
+          'Storage rewrite completed without returning object metadata.',
+        );
+      }
+      return ObjectInfo._fromApi(resource);
+    } on DetailedApiRequestError catch (error) {
+      throw _storageError(error);
+    }
+  }
+
   /// Creates a V4 signed URL for this object.
   ///
   /// [expires] is measured from now and must be at most 7 days. Requires the

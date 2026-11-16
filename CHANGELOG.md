@@ -1,3 +1,24 @@
+## 0.4.0
+
+> Note: This release has breaking changes.
+
+ - **FIX**: keep token refresh timers in the calling zone and stop wrapping listener errors. ([3b505462](https://github.com/appsup-dart/firebase_admin/commit/3b505462dfb3dd823a8f84b244d6d015b71978cf))
+ - **FIX**: reuse FirebaseDart.setup HTTP client for token and API calls. ([a0db8b68](https://github.com/appsup-dart/firebase_admin/commit/a0db8b6862fda6ae7fd81b5be1a259c27601a5e2))
+ - **FIX**: coalesce in-flight getToken refreshes and expire 60s early. ([fd01bc60](https://github.com/appsup-dart/firebase_admin/commit/fd01bc60bbd1585e92bceed6832557b515abc7ce))
+ - **FIX**: fail closed on incomplete tokens and align JWT claims. ([e4f6873e](https://github.com/appsup-dart/firebase_admin/commit/e4f6873e347678b4fd9b858b056139f9ec03f494))
+ - **FIX**: make service-account client_id optional. ([64e0971d](https://github.com/appsup-dart/firebase_admin/commit/64e0971d0162b974057035ea08b20ea482cf2506))
+ - **FIX**: validate service-account JSON and include RSA public exponent. ([1e241df9](https://github.com/appsup-dart/firebase_admin/commit/1e241df97db14bef454e6840c926b84cb129d26e))
+ - **FEAT**: add Firebase App Check service. ([019143d9](https://github.com/appsup-dart/firebase_admin/commit/019143d90f880820c1e0a23ed3122422ee650405))
+ - **FEAT**: add File.copy. ([c84328a4](https://github.com/appsup-dart/firebase_admin/commit/c84328a48ba4b53d55fd99215b3c8af7dfdae838))
+ - **FEAT**: add create/list/revoke Firebase download URLs. ([0fd7515c](https://github.com/appsup-dart/firebase_admin/commit/0fd7515cadf820018a1a00fd5f2a887308161006))
+ - **FEAT**: add Storage getDownloadURL. ([c1736738](https://github.com/appsup-dart/firebase_admin/commit/c1736738d7371566b8daec3121a7bcf8546f6b84))
+ - **FEAT**: add V4 signed URLs for Storage. ([5a30df68](https://github.com/appsup-dart/firebase_admin/commit/5a30df68132cc85328bca37b21195ba6f0a74515))
+ - **FEAT**: add Storage updateMetadata with named arguments. ([4ea28d8c](https://github.com/appsup-dart/firebase_admin/commit/4ea28d8c994862474376b11067f96783075d5c44))
+ - **FEAT**: add Storage info metadata lookup. ([3099f8b1](https://github.com/appsup-dart/firebase_admin/commit/3099f8b19c72f258300478347c0d8985de62f249))
+ - **FEAT**: add Storage read with offset/length. ([d4e9c833](https://github.com/appsup-dart/firebase_admin/commit/d4e9c8333039bf5b06c15fe947bf7d12111077a8))
+ - **FEAT**: add Storage write/writeBytes (ObjectInfo). ([064cbfa6](https://github.com/appsup-dart/firebase_admin/commit/064cbfa68bd0f8017737c02353164f3e3291d7f6))
+ - **BREAKING** **REFACTOR**: replace gcloud with owned Storage types. ([7ac2dd75](https://github.com/appsup-dart/firebase_admin/commit/7ac2dd754e9f1d7e8f990eb253f5622ed6285e38))
+
 ## 0.3.1+5
 
  - **FIX**: failing auth for some service accounts. ([823ddc70](https://github.com/appsup-dart/firebase_admin/commit/823ddc70f07e753e0a6a5fcd0bb9d5bbf43fbeed))

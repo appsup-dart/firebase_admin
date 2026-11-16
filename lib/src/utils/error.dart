@@ -643,3 +643,71 @@ class FirebaseStorageError extends _PrefixedFirebaseError {
             message ??
                 'No download token available. Please create one in the Firebase Console.');
 }
+
+/// Maps App Check backend API status strings to client error codes.
+const appCheckErrorCodeMapping = <String, String>{
+  'ABORTED': 'aborted',
+  'INVALID_ARGUMENT': 'invalid-argument',
+  'INVALID_CREDENTIAL': 'invalid-credential',
+  'INTERNAL': 'internal-error',
+  'PERMISSION_DENIED': 'permission-denied',
+  'UNAUTHENTICATED': 'unauthenticated',
+  'NOT_FOUND': 'not-found',
+  'UNKNOWN': 'unknown-error',
+};
+
+/// Firebase App Check error with an `app-check/` code prefix.
+class FirebaseAppCheckError extends _PrefixedFirebaseError {
+  const FirebaseAppCheckError(String code, String message)
+      : super('app-check', code, message);
+
+  const FirebaseAppCheckError.aborted([String? message])
+      : this('aborted', message ?? 'The operation was aborted.');
+
+  const FirebaseAppCheckError.invalidArgument([String? message])
+      : this('invalid-argument', message ?? 'Invalid argument provided.');
+
+  const FirebaseAppCheckError.invalidCredential([String? message])
+      : this('invalid-credential',
+            message ?? 'Invalid credential object provided.');
+
+  const FirebaseAppCheckError.internalError([String? message])
+      : this('internal-error', message ?? 'An internal error has occurred.');
+
+  const FirebaseAppCheckError.permissionDenied([String? message])
+      : this(
+            'permission-denied',
+            message ??
+                'The caller does not have permission to execute the specified operation.');
+
+  const FirebaseAppCheckError.unauthenticated([String? message])
+      : this(
+            'unauthenticated',
+            message ??
+                'The request does not have valid authentication credentials.');
+
+  const FirebaseAppCheckError.notFound([String? message])
+      : this('not-found', message ?? 'The requested resource was not found.');
+
+  const FirebaseAppCheckError.appCheckTokenExpired([String? message])
+      : this(
+            'app-check-token-expired',
+            message ??
+                'The provided App Check token has expired. Get a fresh App Check token '
+                    'from your client app and try again.');
+
+  const FirebaseAppCheckError.unknownError([String? message])
+      : this('unknown-error', message ?? 'An unknown error occurred.');
+
+  /// Creates an error from an App Check backend API status string.
+  factory FirebaseAppCheckError.fromServerStatus(
+    String? status, [
+    String? message,
+  ]) {
+    final code = status != null ? appCheckErrorCodeMapping[status] : null;
+    return FirebaseAppCheckError(
+      code ?? 'unknown-error',
+      message ?? 'Unknown server error',
+    );
+  }
+}

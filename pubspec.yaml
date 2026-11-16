@@ -24,6 +24,7 @@ dependencies:
   snapshot: ^0.2.5
   _discoveryapis_commons: ^1.0.4
   googleapis: ^19.0.0
+  googleapis_beta: ^9.0.0
 
 dev_dependencies:
   test: ^1.17.8

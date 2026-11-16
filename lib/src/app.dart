@@ -42,6 +42,9 @@ class App {
   /// Gets the [Auth] service for this application.
   Auth auth() => _getService(() => Auth(this));
 
+  /// Gets the [AppCheck] service for this application.
+  AppCheck appCheck() => _getService(() => AppCheck(this));
+
   /// Gets Realtime [Database] client for this application.
   Database database() => _getService(() => Database(this));
 

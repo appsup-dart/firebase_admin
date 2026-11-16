@@ -7,7 +7,7 @@ import '../app.dart';
 import '../auth/credential.dart';
 import '../utils/error.dart';
 
-/// Action authorized by a [File.getSignedUrl] / [Bucket.getSignedUrl].
+/// Action authorized by a [StorageObject.getSignedUrl].
 enum SignedUrlAction {
   /// HTTP GET — download object content.
   read,

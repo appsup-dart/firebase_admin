@@ -31,15 +31,15 @@ void main() {
     test('bucket("foo") should return a bucket object', () {
       expect(storage.bucket('foo').name, 'foo');
     });
-    test('file() returns an object reference with delimiter', () {
-      final file = storage.bucket('foo').file('path/to/obj.txt');
-      expect(file, isA<File>());
-      expect(file, isA<BucketItem>());
-      expect(file.bucket.name, 'foo');
-      expect(file.name, 'path/to/obj.txt');
-      expect(file.delimiter, '/');
-      expect(file.isObject, isTrue);
-      expect(file.isDirectory, isFalse);
+    test('object() returns an object reference with delimiter', () {
+      final obj = storage.bucket('foo').object('path/to/obj.txt');
+      expect(obj, isA<StorageObject>());
+      expect(obj, isA<BucketItem>());
+      expect(obj.bucket.name, 'foo');
+      expect(obj.name, 'path/to/obj.txt');
+      expect(obj.delimiter, '/');
+      expect(obj.isObject, isTrue);
+      expect(obj.isDirectory, isFalse);
     });
     test('prefix() and root() create Prefix refs', () {
       final root = storage.bucket('foo').root();
@@ -61,14 +61,14 @@ void main() {
       expect(dotted.delimiter, '.');
       expect(dotted.parent!.name, 'a.');
     });
-    test('File.parent walks the delimiter hierarchy', () {
-      final file = storage.bucket('foo').file('docs/images/a.png');
-      expect(file.parent!.name, 'docs/images/');
-      expect(file.parent!.parent!.name, 'docs/');
-      expect(file.parent!.parent!.parent!.name, isEmpty);
-      expect(file.parent!.parent!.parent!.parent, isNull);
+    test('StorageObject.parent walks the delimiter hierarchy', () {
+      final obj = storage.bucket('foo').object('docs/images/a.png');
+      expect(obj.parent!.name, 'docs/images/');
+      expect(obj.parent!.parent!.name, 'docs/');
+      expect(obj.parent!.parent!.parent!.name, isEmpty);
+      expect(obj.parent!.parent!.parent!.parent, isNull);
 
-      final top = storage.bucket('foo').file('readme.txt');
+      final top = storage.bucket('foo').object('readme.txt');
       expect(top.parent!.name, isEmpty);
     });
     test('absoluteObjectName() includes gs scheme', () {
@@ -117,10 +117,10 @@ void main() {
       await app.delete();
     });
 
-    test('File.writeBytes uploads bytes and returns ObjectInfo', () async {
+    test('StorageObject.writeBytes uploads bytes and returns ObjectInfo', () async {
       final info = await storage
           .bucket('upload-bucket')
-          .file('docs/a.txt')
+          .object('docs/a.txt')
           .writeBytes(
             utf8.encode('hello'),
             contentType: 'text/plain',
@@ -139,8 +139,8 @@ void main() {
       expect(lastRequest!.url.path, contains('/upload-bucket/o'));
     });
 
-    test('File.write sink uploads on close', () async {
-      final sink = storage.bucket('upload-bucket').file('docs/c.txt').write(
+    test('StorageObject.write sink uploads on close', () async {
+      final sink = storage.bucket('upload-bucket').object('docs/c.txt').write(
         length: 5,
         contentType: 'text/plain',
       );
@@ -201,19 +201,19 @@ void main() {
       await app.delete();
     });
 
-    test('File.read downloads full object', () async {
+    test('StorageObject.read downloads full object', () async {
       final chunks = await storage
           .bucket('upload-bucket')
-          .file('docs/a.txt')
+          .object('docs/a.txt')
           .read()
           .toList();
       expect(utf8.decode(chunks.expand((c) => c).toList()), 'hello');
     });
 
-    test('File.read supports offset and length', () async {
+    test('StorageObject.read supports offset and length', () async {
       final chunks = await storage
           .bucket('upload-bucket')
-          .file('docs/a.txt')
+          .object('docs/a.txt')
           .read(offset: 1, length: 3)
           .toList();
       expect(utf8.decode(chunks.expand((c) => c).toList()), 'ell');
@@ -223,7 +223,7 @@ void main() {
       expect(
         () => storage
             .bucket('upload-bucket')
-            .file('a.txt')
+            .object('a.txt')
             .read(offset: 1)
             .toList(),
         throwsArgumentError,
@@ -279,9 +279,9 @@ void main() {
       await app.delete();
     });
 
-    test('File.info returns ObjectInfo', () async {
+    test('StorageObject.info returns ObjectInfo', () async {
       final info =
-          await storage.bucket('upload-bucket').file('docs/a.txt').info();
+          await storage.bucket('upload-bucket').object('docs/a.txt').info();
       expect(info.bucket, 'upload-bucket');
       expect(info.name, 'docs/a.txt');
       expect(info.contentType, 'text/plain');
@@ -341,10 +341,10 @@ void main() {
       await app.delete();
     });
 
-    test('File.updateMetadata patches fields', () async {
+    test('StorageObject.updateMetadata patches fields', () async {
       final info = await storage
           .bucket('upload-bucket')
-          .file('docs/a.txt')
+          .object('docs/a.txt')
           .updateMetadata(
             contentType: 'text/html',
             cacheControl: 'no-cache',
@@ -378,7 +378,7 @@ void main() {
 
     test('creates a V4 virtual-hosted signed URL', () async {
       await withClock(Clock.fixed(DateTime.utc(2024, 1, 2, 3, 4, 5)), () async {
-        final url = await storage.bucket('my-bucket').file('docs/a.txt').getSignedUrl(
+        final url = await storage.bucket('my-bucket').object('docs/a.txt').getSignedUrl(
           expires: const Duration(hours: 1),
         );
         expect(url.scheme, 'https');
@@ -401,7 +401,7 @@ void main() {
     });
 
     test('includes content-type in signed headers when provided', () async {
-      final url = await storage.bucket('my-bucket').file('a.txt').getSignedUrl(
+      final url = await storage.bucket('my-bucket').object('a.txt').getSignedUrl(
         action: SignedUrlAction.write,
         expires: const Duration(minutes: 15),
         contentType: 'text/plain',
@@ -411,7 +411,7 @@ void main() {
 
     test('rejects expires longer than 7 days', () async {
       expect(
-        () => storage.bucket('my-bucket').file('a.txt').getSignedUrl(
+        () => storage.bucket('my-bucket').object('a.txt').getSignedUrl(
           expires: const Duration(days: 8),
         ),
         throwsFirebaseError('storage/invalid-argument'),
@@ -459,7 +459,7 @@ void main() {
 
     test('returns Firebase download URL using first token', () async {
       final url =
-          await storage.bucket('my-bucket').file('docs/a.txt').getDownloadURL();
+          await storage.bucket('my-bucket').object('docs/a.txt').getDownloadURL();
       expect(
         url.toString(),
         'https://firebasestorage.googleapis.com/v0/b/my-bucket/o/docs%2Fa.txt'
@@ -470,14 +470,14 @@ void main() {
     test('throws when download token is missing', () async {
       downloadTokens = null;
       expect(
-        () => storage.bucket('my-bucket').file('docs/a.txt').getDownloadURL(),
+        () => storage.bucket('my-bucket').object('docs/a.txt').getDownloadURL(),
         throwsFirebaseError('storage/no-download-token'),
       );
     });
 
     test('listDownloadURLs returns a URL per token', () async {
       final urls =
-          await storage.bucket('my-bucket').file('docs/a.txt').listDownloadURLs();
+          await storage.bucket('my-bucket').object('docs/a.txt').listDownloadURLs();
       expect(urls, hasLength(2));
       expect(urls[0].queryParameters['token'], 'token-one');
       expect(urls[1].queryParameters['token'], 'token-two');
@@ -552,7 +552,7 @@ void main() {
 
     test('createDownloadURL mints a new token', () async {
       final url =
-          await storage.bucket('my-bucket').file('docs/a.txt').createDownloadURL();
+          await storage.bucket('my-bucket').object('docs/a.txt').createDownloadURL();
       expect(url.host, 'firebasestorage.googleapis.com');
       expect(url.queryParameters['token'], isNotEmpty);
       expect(lastPatch, isNotNull);
@@ -568,7 +568,7 @@ void main() {
         'env': 'test',
       };
       final url =
-          await storage.bucket('my-bucket').file('docs/a.txt').createDownloadURL();
+          await storage.bucket('my-bucket').object('docs/a.txt').createDownloadURL();
       final tokens =
           objectMetadata['firebaseStorageDownloadTokens']!.split(',');
       expect(tokens, ['existing-token', url.queryParameters['token']]);
@@ -585,7 +585,7 @@ void main() {
       );
       await storage
           .bucket('my-bucket')
-          .file('docs/a.txt')
+          .object('docs/a.txt')
           .revokeDownloadURL(toRevoke);
       expect(objectMetadata['firebaseStorageDownloadTokens'], 'token-b');
     });
@@ -595,7 +595,7 @@ void main() {
         'firebaseStorageDownloadTokens': 'token-a,token-b',
         'env': 'test',
       };
-      await storage.bucket('my-bucket').file('docs/a.txt').revokeDownloadURL();
+      await storage.bucket('my-bucket').object('docs/a.txt').revokeDownloadURL();
       expect(objectMetadata.containsKey('firebaseStorageDownloadTokens'), isFalse);
       expect(objectMetadata['env'], 'test');
     });
@@ -611,7 +611,7 @@ void main() {
       expect(
         () => storage
             .bucket('my-bucket')
-            .file('docs/a.txt')
+            .object('docs/a.txt')
             .revokeDownloadURL(foreign),
         throwsFirebaseError('storage/invalid-argument'),
       );
@@ -674,9 +674,9 @@ void main() {
       await app.delete();
     });
 
-    test('File.copy rewrites to destination File', () async {
-      final dest = storage.bucket('src-bucket').file('docs/b.txt');
-      final info = await storage.bucket('src-bucket').file('docs/a.txt').copy(
+    test('StorageObject.copy rewrites to destination StorageObject', () async {
+      final dest = storage.bucket('src-bucket').object('docs/b.txt');
+      final info = await storage.bucket('src-bucket').object('docs/a.txt').copy(
         dest,
         contentType: 'text/plain',
         metadata: {'env': 'test'},
@@ -692,10 +692,10 @@ void main() {
       expect(rewriteBody!['metadata'], {'env': 'test'});
     });
 
-    test('File.copy supports cross-bucket destination', () async {
-      final dest = storage.bucket('other-bucket').file('docs/b.txt');
+    test('StorageObject.copy supports cross-bucket destination', () async {
+      final dest = storage.bucket('other-bucket').object('docs/b.txt');
       final info =
-          await storage.bucket('src-bucket').file('docs/a.txt').copy(dest);
+          await storage.bucket('src-bucket').object('docs/a.txt').copy(dest);
       expect(info.bucket, 'other-bucket');
       expect(info.name, 'docs/b.txt');
       expect(requests.single.url.path, contains('/b/other-bucket/o/'));

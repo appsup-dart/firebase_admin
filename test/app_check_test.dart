@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io' as io;
+import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:firebase_admin/src/app_check/api_client.dart';
@@ -21,7 +21,7 @@ Matcher throwsFirebaseAppCheckError([String? code]) =>
     throwsA(isA<FirebaseAppCheckError>().having((e) => e.code, 'code', code));
 
 JsonWebKeySet _testJwks() => JsonWebKeySet.fromJson(json.decode(
-    io.File('test/resources/openid-jwks.json').readAsStringSync()));
+    File('test/resources/openid-jwks.json').readAsStringSync()));
 
 String generateAppCheckToken({
   List<String>? audience,

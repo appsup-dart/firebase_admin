@@ -51,8 +51,8 @@ class Storage implements FirebaseService {
 
 /// Reference to a Cloud Storage bucket.
 ///
-/// Use [file] / [prefix] / [root] / [list] for navigation. Object operations
-/// (read, write, metadata, URLs, …) live on [File].
+/// Use [object] / [prefix] / [root] / [list] for navigation. Object operations
+/// (read, write, metadata, URLs, …) live on [StorageObject].
 class Bucket {
   final Storage _storage;
   final String name;
@@ -66,15 +66,15 @@ class Bucket {
 
   /// Reference to object [path] in this bucket (no RPC).
   ///
-  /// [delimiter] is stored on the [File] so hierarchy helpers like
+  /// [delimiter] is stored on the [StorageObject] so hierarchy helpers like
   /// [BucketItem.parent] use a consistent tree.
-  File file(String path, {String delimiter = '/'}) =>
-      File._(this, path, delimiter);
+  StorageObject object(String path, {String delimiter = '/'}) =>
+      StorageObject._(this, path, delimiter);
 
   /// Reference to a virtual directory [path] in this bucket (no RPC).
   ///
   /// [delimiter] defines the hierarchy and is fixed on this [Prefix] and on
-  /// every [File] / [Prefix] returned from [Prefix.list]. For directory-style
+  /// every [StorageObject] / [Prefix] returned from [Prefix.list]. For directory-style
   /// paths, prefer a trailing delimiter (e.g. `docs/` with delimiter `/`).
   Prefix prefix(String path, {String delimiter = '/'}) =>
       Prefix._(this, path, delimiter);
@@ -108,10 +108,10 @@ class Bucket {
         for (final p in page.prefixes ?? const <String>[]) {
           yield Prefix._(this, p, delimiter);
         }
-        for (final object in page.items ?? const <storage_api.Object>[]) {
-          final objectName = object.name;
+        for (final item in page.items ?? const <storage_api.Object>[]) {
+          final objectName = item.name;
           if (objectName == null || objectName.isEmpty) continue;
-          yield File._(this, objectName, delimiter);
+          yield StorageObject._(this, objectName, delimiter);
         }
         pageToken = page.nextPageToken;
       } while (pageToken != null && pageToken.isNotEmpty);
@@ -121,7 +121,7 @@ class Bucket {
   }
 }
 
-/// An entry from a hierarchical [Prefix.list] — either a [File] or a [Prefix].
+/// An entry from a hierarchical [Prefix.list] — either a [StorageObject] or a [Prefix].
 sealed class BucketItem {
   /// Bucket this entry belongs to.
   final Bucket bucket;
@@ -134,10 +134,10 @@ sealed class BucketItem {
 
   BucketItem._(this.bucket, this.name, this.delimiter);
 
-  /// True for [Prefix], false for [File].
+  /// True for [Prefix], false for [StorageObject].
   bool get isDirectory;
 
-  /// True for [File], false for [Prefix].
+  /// True for [StorageObject], false for [Prefix].
   bool get isObject => !isDirectory;
 
   /// Parent [Prefix] in this item's delimiter hierarchy, or `null` at the root
@@ -163,8 +163,8 @@ sealed class BucketItem {
 }
 
 /// Reference to a Cloud Storage object.
-class File extends BucketItem {
-  File._(super.bucket, super.name, super.delimiter) : super._();
+class StorageObject extends BucketItem {
+  StorageObject._(super.bucket, super.name, super.delimiter) : super._();
 
   @override
   bool get isDirectory => false;
@@ -196,7 +196,7 @@ class File extends BucketItem {
   /// override values on the destination; omitted fields are copied from the
   /// source. Returns the destination [ObjectInfo].
   Future<ObjectInfo> copy(
-    File destination, {
+    StorageObject destination, {
     String? contentType,
     String? contentEncoding,
     String? cacheControl,
@@ -598,7 +598,7 @@ class ObjectInfo {
   }
 }
 
-/// [StreamSink] for [File.write]; [done]/[close] yield [ObjectInfo].
+/// [StreamSink] for [StorageObject.write]; [done]/[close] yield [ObjectInfo].
 abstract class ObjectWriteSink implements StreamSink<List<int>> {
   @override
   Future<ObjectInfo> get done;

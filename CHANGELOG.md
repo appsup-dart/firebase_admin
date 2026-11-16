@@ -1,3 +1,9 @@
+## 0.5.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **REFACTOR**: rename Storage File to StorageObject. ([d6ffedd3](https://github.com/appsup-dart/firebase_admin/commit/d6ffedd338ee34521c1aa03a1ecfdf67bc002669))
+
 ## 0.4.0
 
 > Note: This release has breaking changes.

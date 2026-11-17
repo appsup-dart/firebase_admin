@@ -694,15 +694,21 @@ class Prefix extends BucketItem {
 FirebaseStorageError _storageError(DetailedApiRequestError error) {
   final response = error.jsonResponse;
   final apiError = response?['error'];
-  if (apiError is Map) {
-    final message = apiError['message'] as String? ?? error.message;
-    return FirebaseStorageError(
-      'unknown-error',
-      message ?? 'Unexpected Storage API error (status: ${error.status}).',
-    );
+  final message = apiError is Map
+      ? apiError['message'] as String? ?? error.message
+      : error.message;
+  final text =
+      message ?? 'Unexpected Storage API error (status: ${error.status}).';
+  if (_isNotFound(error, apiError)) {
+    return FirebaseStorageError.notFound(text);
   }
-  return FirebaseStorageError(
-    'unknown-error',
-    error.message ?? 'Unexpected Storage API error (status: ${error.status}).',
-  );
+  return FirebaseStorageError('unknown-error', text);
+}
+
+bool _isNotFound(DetailedApiRequestError error, Object? apiError) {
+  if (error.status == 404) return true;
+  if (apiError is! Map) return false;
+  final errors = apiError['errors'];
+  if (errors is! List) return false;
+  return errors.any((item) => item is Map && item['reason'] == 'notFound');
 }

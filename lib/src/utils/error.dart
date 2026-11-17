@@ -642,6 +642,15 @@ class FirebaseStorageError extends _PrefixedFirebaseError {
             'no-download-token',
             message ??
                 'No download token available. Please create one in the Firebase Console.');
+
+  /// The object does not exist.
+  ///
+  /// Thrown when Cloud Storage responds with HTTP 404 or reason `notFound`.
+  FirebaseStorageError.notFound([String? message])
+      : this(
+            'not-found',
+            message ?? 'The requested object was not found.',
+          );
 }
 
 /// Maps App Check backend API status strings to client error codes.

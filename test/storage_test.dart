@@ -701,4 +701,92 @@ void main() {
       expect(requests.single.url.path, contains('/b/other-bucket/o/'));
     });
   });
+
+  group('Storage missing object', () {
+    late http.Client Function() previousFactory;
+    late App app;
+    late Storage storage;
+
+    setUp(() {
+      previousFactory = AuthorizedHttpClient.httpClientFactory;
+      AuthorizedHttpClient.httpClientFactory = () => MockClient((request) async {
+        final path = request.url.path;
+        if (path.endsWith('bare.txt')) {
+          return http.Response('missing', 404, request: request);
+        }
+        if (path.endsWith('forbidden.txt')) {
+          return http.Response(
+            jsonEncode({
+              'error': {
+                'code': 403,
+                'message': 'Forbidden',
+                'errors': [
+                  {
+                    'message': 'Forbidden',
+                    'domain': 'global',
+                    'reason': 'forbidden',
+                  },
+                ],
+              },
+            }),
+            403,
+            headers: {'content-type': 'application/json'},
+            request: request,
+          );
+        }
+        return http.Response(
+          jsonEncode({
+            'error': {
+              'code': 404,
+              'message': 'No such object: upload-bucket/docs/missing.txt',
+              'errors': [
+                {
+                  'message': 'No such object: upload-bucket/docs/missing.txt',
+                  'domain': 'global',
+                  'reason': 'notFound',
+                },
+              ],
+            },
+          }),
+          404,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      });
+      app = admin.initializeApp(
+        mocks.appOptions,
+        'storage-missing-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      storage = app.storage();
+    });
+
+    tearDown(() async {
+      AuthorizedHttpClient.httpClientFactory = previousFactory;
+      await app.delete();
+    });
+
+    test('StorageObject.delete throws storage/not-found', () {
+      expect(
+        storage.bucket('upload-bucket').object('docs/missing.txt').delete(),
+        throwsFirebaseError('storage/not-found'),
+      );
+    });
+
+    test('StorageObject.delete maps a bare HTTP 404 to storage/not-found', () {
+      expect(
+        storage.bucket('upload-bucket').object('docs/bare.txt').delete(),
+        throwsFirebaseError('storage/not-found'),
+      );
+    });
+
+    test(
+      'StorageObject.delete keeps other API errors as storage/unknown-error',
+      () {
+        expect(
+          storage.bucket('upload-bucket').object('docs/forbidden.txt').delete(),
+          throwsFirebaseError('storage/unknown-error'),
+        );
+      },
+    );
+  });
 }

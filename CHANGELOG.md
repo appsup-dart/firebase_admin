@@ -1,3 +1,7 @@
+## 0.5.0+2
+
+ - **FIX**: prefer httpClientFactory over FirebaseDart.setup client. ([7e3dcc27](https://github.com/appsup-dart/firebase_admin/commit/7e3dcc27b3c99f22221f26827916a1a53aab869c))
+
 ## 0.5.0+1
 
  - **FIX**: map Cloud Storage 404 responses to storage/not-found. ([5f8f99ef](https://github.com/appsup-dart/firebase_admin/commit/5f8f99efa7dc268b6ab8834d348b41a4889185c9))
